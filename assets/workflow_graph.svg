@@ -1,0 +1,99 @@
+<svg width="800" height="560" viewBox="0 0 800 560" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <!-- Background -->
+  <rect width="800" height="560" fill="#0f172a"/>
+  <!-- Title -->
+  <text x="400" y="38" text-anchor="middle" fill="#f1f5f9" font-size="18" font-weight="bold">LangGraph Workflow — Agent State Machine</text>
+
+  <!-- Defs -->
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <marker id="a-green" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#22c55e"/>
+    </marker>
+    <marker id="a-red" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f87171"/>
+    </marker>
+    <marker id="a-yellow" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#fbbf24"/>
+    </marker>
+    <marker id="a-blue" markerWidth="10" markerHeight="7" refX="8" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#60a5fa"/>
+    </marker>
+  </defs>
+
+  <!-- START -->
+  <circle cx="400" cy="90" r="30" fill="#1e293b" stroke="#64748b" stroke-width="2"/>
+  <text x="400" y="86" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">START</text>
+  <text x="400" y="101" text-anchor="middle" fill="#64748b" font-size="9">HumanMessage</text>
+
+  <!-- Arrow START → Planner -->
+  <line x1="400" y1="120" x2="400" y2="155" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- Planner Node -->
+  <rect x="285" y="155" width="230" height="80" rx="10" fill="#1e1b4b" stroke="#6366f1" stroke-width="2"/>
+  <text x="400" y="178" text-anchor="middle" fill="#c7d2fe" font-size="13" font-weight="bold">🧠 Planner</text>
+  <text x="400" y="196" text-anchor="middle" fill="#a5b4fc" font-size="10">Creates numbered execution plan</text>
+  <text x="400" y="212" text-anchor="middle" fill="#818cf8" font-size="9">→ sets state.plan, state.iteration=0</text>
+  <text x="400" y="227" text-anchor="middle" fill="#6366f1" font-size="9">gpt-4o-mini  |  SYSTEM prompt guided</text>
+
+  <!-- Arrow Planner → Executor -->
+  <line x1="400" y1="235" x2="400" y2="270" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- Executor Node -->
+  <rect x="285" y="270" width="230" height="80" rx="10" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
+  <text x="400" y="293" text-anchor="middle" fill="#bbf7d0" font-size="13" font-weight="bold">⚙️ Executor</text>
+  <text x="400" y="311" text-anchor="middle" fill="#86efac" font-size="10">Calls tools step by step</text>
+  <text x="400" y="327" text-anchor="middle" fill="#4ade80" font-size="9">→ increments state.iteration</text>
+  <text x="400" y="342" text-anchor="middle" fill="#166534" font-size="9">gpt-4o-mini + bind_tools(ALL_TOOLS)</text>
+
+  <!-- Routing diamond: tool_calls? -->
+  <polygon points="400,370 460,400 400,430 340,400" fill="#1c1917" stroke="#78716c" stroke-width="1.5"/>
+  <text x="400" y="397" text-anchor="middle" fill="#d6d3d1" font-size="10" font-weight="bold">tool_calls?</text>
+  <text x="400" y="412" text-anchor="middle" fill="#a8a29e" font-size="9">route_after_executor</text>
+
+  <!-- Arrow Executor → Diamond -->
+  <line x1="400" y1="350" x2="400" y2="368" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- Tools Node (left) -->
+  <rect x="95" y="370" width="190" height="70" rx="10" fill="#1c1917" stroke="#f59e0b" stroke-width="2"/>
+  <text x="190" y="393" text-anchor="middle" fill="#fde68a" font-size="13" font-weight="bold">🔧 ToolNode</text>
+  <text x="190" y="410" text-anchor="middle" fill="#fcd34d" font-size="9">Executes all pending tool calls</text>
+  <text x="190" y="425" text-anchor="middle" fill="#d97706" font-size="9">Returns ToolMessage results</text>
+
+  <!-- YES arrow: Diamond left → Tools -->
+  <line x1="340" y1="400" x2="285" y2="400" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-green)"/>
+  <text x="310" y="393" text-anchor="middle" fill="#22c55e" font-size="9">YES</text>
+
+  <!-- Arrow: Tools → Executor (loop back) -->
+  <path d="M190 370 Q 190 280 285 310" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a-yellow)"/>
+  <text x="168" y="320" text-anchor="middle" fill="#fbbf24" font-size="9">loop back</text>
+
+  <!-- Reviewer Node (right) -->
+  <rect x="520" y="370" width="190" height="70" rx="10" fill="#4a1942" stroke="#ec4899" stroke-width="2"/>
+  <text x="615" y="393" text-anchor="middle" fill="#fbcfe8" font-size="13" font-weight="bold">🔍 Reviewer</text>
+  <text x="615" y="410" text-anchor="middle" fill="#f9a8d4" font-size="9">APPROVED / REVISION / FAILED</text>
+  <text x="615" y="425" text-anchor="middle" fill="#db2777" font-size="9">→ sets state.task_complete</text>
+
+  <!-- NO arrow: Diamond right → Reviewer -->
+  <line x1="460" y1="400" x2="518" y2="400" stroke="#f87171" stroke-width="1.5" marker-end="url(#a-red)"/>
+  <text x="490" y="393" text-anchor="middle" fill="#f87171" font-size="9">NO</text>
+
+  <!-- Routing diamond: approved? -->
+  <polygon points="615,470 675,500 615,530 555,500" fill="#1c1917" stroke="#78716c" stroke-width="1.5"/>
+  <text x="615" y="497" text-anchor="middle" fill="#d6d3d1" font-size="10" font-weight="bold">APPROVED?</text>
+  <text x="615" y="513" text-anchor="middle" fill="#a8a29e" font-size="9">route_after_reviewer</text>
+  <line x1="615" y1="440" x2="615" y2="468" stroke="#64748b" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- REVISION NEEDED → back to Executor -->
+  <path d="M555 500 Q 400 540 400 440" fill="none" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a-yellow)"/>
+  <text x="445" y="540" text-anchor="middle" fill="#f59e0b" font-size="9">REVISION NEEDED</text>
+
+  <!-- END -->
+  <circle cx="700" cy="500" r="28" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
+  <text x="700" y="497" text-anchor="middle" fill="#bbf7d0" font-size="11" font-weight="bold">END</text>
+  <text x="700" y="512" text-anchor="middle" fill="#86efac" font-size="9">APPROVED</text>
+  <line x1="675" y1="500" x2="671" y2="500" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-green)"/>
+  <text x="654" y="494" text-anchor="middle" fill="#22c55e" font-size="9">YES</text>
+</svg>
