@@ -14,13 +14,13 @@ logger = logging.getLogger(__name__)
 class PostgresRetrievalBackend(BaseRetrievalBackend):
     """Full-text search backed by PostgreSQL tsvector/tsquery.
 
-    Documents are stored with a GIN-indexed tsvector column. PostgreSQL's
-    ts_rank scoring is used for relevance ordering — no external library needed.
+    Documents are stored with a GIN-indexed tsvector column. ts_rank is used
+    for relevance ordering. Metadata filtering uses JSONB operators.
 
     Advantages over TF-IDF/SQLite:
-      - Handles large corpora without in-memory index rebuilds
-      - Uses PostgreSQL's built-in stemming and stop-word dictionaries
-      - Persistent across process restarts
+      - No in-memory index rebuilds; handles millions of documents
+      - Built-in stemming, stop-word dictionaries via PostgreSQL FTS config
+      - JSONB metadata filtering is fully indexed
 
     Requires:
         pip install psycopg2-binary>=2.9
@@ -54,7 +54,7 @@ class PostgresRetrievalBackend(BaseRetrievalBackend):
                     CREATE TABLE IF NOT EXISTS documents (
                         id         TEXT PRIMARY KEY,
                         content    TEXT NOT NULL,
-                        metadata   TEXT NOT NULL DEFAULT '{}',
+                        metadata   JSONB NOT NULL DEFAULT '{}',
                         tsv        TSVECTOR,
                         created_at DOUBLE PRECISION NOT NULL
                     )
@@ -62,7 +62,9 @@ class PostgresRetrievalBackend(BaseRetrievalBackend):
                 cur.execute(
                     "CREATE INDEX IF NOT EXISTS idx_documents_tsv ON documents USING GIN(tsv)"
                 )
-                # Trigger keeps tsv column in sync with content automatically
+                cur.execute(
+                    "CREATE INDEX IF NOT EXISTS idx_documents_meta ON documents USING GIN(metadata)"
+                )
                 cur.execute(f"""
                     CREATE OR REPLACE FUNCTION documents_tsv_trigger() RETURNS trigger AS $$
                     BEGIN
@@ -86,7 +88,7 @@ class PostgresRetrievalBackend(BaseRetrievalBackend):
                 with conn.cursor() as cur:
                     cur.execute("""
                         INSERT INTO documents (id, content, metadata, created_at)
-                        VALUES (%s, %s, %s, %s)
+                        VALUES (%s, %s, %s::jsonb, %s)
                         ON CONFLICT (id) DO UPDATE SET
                             content    = EXCLUDED.content,
                             metadata   = EXCLUDED.metadata
@@ -97,18 +99,29 @@ class PostgresRetrievalBackend(BaseRetrievalBackend):
             logger.error("postgres.retrieval.index failed: %s", exc)
             return MCPResult.fail(str(exc))
 
-    def search(self, query: str, top_k: int = 5) -> MCPResult:
+    def search(self, query: str, top_k: int = 5,
+               metadata_filter: Optional[Dict[str, Any]] = None) -> MCPResult:
         try:
+            conditions = [f"tsv @@ plainto_tsquery('{self.language}', %s)"]
+            params: list = [query]
+            if metadata_filter:
+                conditions.append("metadata @> %s::jsonb")
+                params.append(json.dumps(metadata_filter))
+            params.append(top_k)
+
+            where = " AND ".join(conditions)
+            sql = f"""
+                SELECT id, content, metadata::text,
+                       ts_rank(tsv, plainto_tsquery('{self.language}', %s)) AS score
+                FROM documents
+                WHERE {where}
+                ORDER BY score DESC
+                LIMIT %s
+            """
+            # ts_rank needs query twice: once for SELECT, once for WHERE
             with self._connect() as conn:
                 with conn.cursor() as cur:
-                    cur.execute(f"""
-                        SELECT id, content, metadata,
-                               ts_rank(tsv, plainto_tsquery('{self.language}', %s)) AS score
-                        FROM documents
-                        WHERE tsv @@ plainto_tsquery('{self.language}', %s)
-                        ORDER BY score DESC
-                        LIMIT %s
-                    """, (query, query, top_k))
+                    cur.execute(sql, [query] + params)
                     rows = cur.fetchall()
             results = [
                 {
@@ -136,6 +149,21 @@ class PostgresRetrievalBackend(BaseRetrievalBackend):
             return MCPResult.ok(data="deleted")
         except Exception as exc:
             logger.error("postgres.retrieval.delete failed: %s", exc)
+            return MCPResult.fail(str(exc))
+
+    def delete_chunks(self, source_id: str) -> MCPResult:
+        try:
+            with self._connect() as conn:
+                with conn.cursor() as cur:
+                    cur.execute(
+                        "DELETE FROM documents WHERE metadata->>'_source_id' = %s",
+                        (source_id,),
+                    )
+                    count = cur.rowcount
+                conn.commit()
+            return MCPResult.ok(data=f"deleted: {count} chunks")
+        except Exception as exc:
+            logger.error("postgres.retrieval.delete_chunks failed: %s", exc)
             return MCPResult.fail(str(exc))
 
     def health_check(self) -> MCPResult:

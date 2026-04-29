@@ -31,11 +31,16 @@ class RetrievalMCP(BaseMCP):
               metadata: Optional[Dict[str, Any]] = None) -> MCPResult:
         return self._backend.index(doc_id, content, metadata=metadata)
 
-    def search(self, query: str, top_k: int = 5) -> MCPResult:
-        return self._backend.search(query, top_k=top_k)
+    def search(self, query: str, top_k: int = 5,
+               metadata_filter: Optional[Dict[str, Any]] = None) -> MCPResult:
+        return self._backend.search(query, top_k=top_k, metadata_filter=metadata_filter)
 
     def delete(self, doc_id: str) -> MCPResult:
         return self._backend.delete(doc_id)
+
+    def delete_chunks(self, source_id: str) -> MCPResult:
+        """Delete all chunks whose metadata._source_id equals source_id."""
+        return self._backend.delete_chunks(source_id)
 
     def health_check(self) -> MCPResult:
         result = self._backend.health_check()

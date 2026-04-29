@@ -22,3 +22,7 @@ urllib3>=2.0.0
 # ── Optional: Scheduler backends ──────────────────────────────────────────────
 # SCHEDULER_BACKEND=celery
 # celery[redis]>=5.3.0
+
+# ── Optional: Crawl tools (RAG ingestion) ─────────────────────────────────────
+# Strongly recommended for HTML parsing quality (crawl_and_index, crawl_recursive)
+# beautifulsoup4>=4.12.0
