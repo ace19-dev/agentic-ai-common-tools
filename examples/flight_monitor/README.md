@@ -2,23 +2,27 @@
 
 값싼 항공권이 나타날 때까지 주기적으로 가격을 모니터링하다가, 임계값 이하 가격이 감지되면 **자동 예약 + Slack/이메일 알림**을 전송하는 4-에이전트 시스템입니다.
 
+두 가지 모드를 지원합니다:
+- **mock** (기본값) — 로컬 MockFlightAPI 서버, 설정 없이 즉시 실행
+- **amadeus** — 실제 [Amadeus for Developers](https://developers.amadeus.com) REST API
+
 ![Flight Monitor Workflow](../../assets/flight_monitor_workflow.svg)
 
 ---
 
 ## 아키텍처
 
-범용 `Planner → Executor → Reviewer` 워크플로우 대신, 이 예시는 **도메인 특화 LangGraph**를 직접 구성합니다.  
+범용 `Planner → Executor → Reviewer` 워크플로우 대신, 이 예시는 **도메인 특화 LangGraph**를 직접 구성합니다.
 4개의 전문화된 에이전트가 하나의 공유 `ToolNode`를 통해 tool을 실행하며, `FlightState.active_phase` 필드로 어느 에이전트로 복귀할지 결정합니다.
 
 ### 4-Agent 구성 (Principle of Least Privilege)
 
-| 에이전트 | 파일 | 역할 | 전용 Tool |
-|----------|------|------|-----------|
-| `SearchAgent` | `agents.py` | 항공권 검색 API 호출, 결과를 memory에 저장 | `http_get`, `memory_set`, `notify_console` |
-| `PriceAnalysisAgent` | `agents.py` | 가격 vs 임계값 비교, 예약 여부 결정 | `memory_get` + Pydantic Structured Output |
-| `BookingAgent` | `agents.py` | 예약 API 호출, 암호화 API 키 사용, 확인서 저장 | `http_post`, `auth_get_key`, `memory_set` |
-| `NotificationAgent` | `agents.py` | Slack + 이메일 예약 확인 알림 발송 | `notify_slack`, `notify_email`, `memory_set` |
+| 에이전트 | 역할 | 전용 Tool |
+|----------|------|-----------|
+| `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` |
+| `PriceAnalysisAgent` | 가격 vs 임계값 비교, 예약 여부 결정 | `memory_get` + Pydantic Structured Output |
+| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` |
+| `NotificationAgent` | Slack + 이메일 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` |
 
 ### 그래프 토폴로지 (1 사이클 = 1 모니터링 체크)
 
@@ -48,25 +52,28 @@ price_analysis                     (Structured Output — tool call 없음)
 
 | 파일 | 역할 |
 |------|------|
-| `run.py` | 모니터링 루프 진입점, CLI 파싱, `MonitorCriteria` 정의 |
+| `run.py` | 모니터링 루프 진입점, CLI 파싱, 모드별 클라이언트 설정 |
 | `workflow.py` | LangGraph `StateGraph` 빌더, 라우팅 로직 |
 | `agents.py` | 4개 에이전트 노드 함수, `extract_booking_result` |
 | `state.py` | `FlightState` TypedDict 정의 |
 | `mock_api.py` | Mock 항공권 검색/예약 HTTP 서버 (`ThreadingHTTPServer`) |
+| `mcp/flight.py` | 항공 API 클라이언트 추상화 (Base / Mock / Amadeus) |
+| `tools/flight_tools.py` | `flight_search`, `flight_book` LangChain tool 래퍼 |
 
 ---
 
 ## 실행
 
-### 기본 실행
+### Mock 모드 (기본값 — 설정 없이 바로 실행)
+
 ```bash
 python -m examples.flight_monitor.run
 ```
 
-기본 설정: `ICN → NRT`, 임계값 `$280`, 최대 10회 체크, 3번째·7번째 체크에서 딜 발생.
+기본 설정: `ICN → NRT`, 임계값 `$280`, 최대 10회 체크, 3번째·7번째에서 딜 발생.
 
-### 커스텀 설정
 ```bash
+# 커스텀 설정
 python -m examples.flight_monitor.run \
   --origin ICN \
   --dest BKK \
@@ -77,45 +84,83 @@ python -m examples.flight_monitor.run \
   --cheap-on 2 5
 ```
 
-### CLI 옵션
+### Live 모드 — Amadeus (실제 항공 데이터)
+
+**1단계: Amadeus 계정 생성 (무료)**
+1. [developers.amadeus.com](https://developers.amadeus.com) → Sign Up → My Apps → Create New App
+2. Test 환경의 `Client ID` + `Client Secret` 확인
+
+**2단계: 자격증명 설정 (둘 중 하나)**
+
+```bash
+# 방법 A — .env 파일
+AMADEUS_CLIENT_ID=your_client_id
+AMADEUS_CLIENT_SECRET=your_client_secret
+
+# 방법 B — 암호화 auth vault에 저장 (권장)
+python -c "
+from tools.auth_tools import auth_store_key
+auth_store_key.invoke({'service': 'amadeus', 'key': 'your_client_id:your_client_secret'})
+"
+```
+
+**3단계: 실행**
+
+```bash
+# .env 자격증명 사용
+python -m examples.flight_monitor.run --mode amadeus --origin ICN --dest NRT --date 2026-07-15
+
+# auth vault 자격증명 사용
+python -m examples.flight_monitor.run --mode amadeus --amadeus-key amadeus
+```
+
+> **Live 모드의 예약 동작**: Amadeus 실제 예약(`/v1/booking/flight-orders`)은 여권·결제 정보가 필요합니다. 이 시스템은 딜을 감지하면 **Google Flights 딥 링크 + 알림**을 생성합니다. 사용자가 링크를 통해 직접 예약을 완료합니다. (대부분의 항공권 알림 서비스와 동일한 방식)
+
+---
+
+## CLI 옵션
 
 | 옵션 | 기본값 | 설명 |
 |------|--------|------|
+| `--mode` | `mock` | API 백엔드: `mock` 또는 `amadeus` |
 | `--origin` | `ICN` | 출발지 IATA 코드 |
 | `--dest` | `NRT` | 목적지 IATA 코드 |
 | `--date` | `2026-07-15` | 여행 날짜 (YYYY-MM-DD) |
 | `--max-price` | `280.0` | 최대 허용 가격 (USD) |
 | `--passenger` | `Agentic AI Traveler` | 승객 이름 |
+| `--email` | `""` | 승객 이메일 (예약 확인 발송용) |
 | `--interval` | `8` | 체크 간격 (초) |
 | `--max-checks` | `10` | 최대 체크 횟수 |
-| `--cheap-on` | `3 7` | 딜이 발생할 체크 번호 (Mock 전용) |
+| `--cheap-on` | `3 7` | 딜 발생 체크 번호 (Mock 모드 전용) |
+| `--amadeus-key` | `amadeus` | auth vault의 Amadeus 자격증명 서비스 이름 |
 
 ---
 
-## 출력 예시
+## 출력 예시 (Mock 모드)
 
 ```
 ═════════════════════════════════════════════════════════════════
 ✈️  FLIGHT MONITOR — AGENTIC AI
 ═════════════════════════════════════════════════════════════════
+  Mode        : MOCK
   Route       : ICN → NRT
   Date        : 2026-07-15
   Max price   : $280.00 USD
+  Passenger   : Agentic AI Traveler
   Interval    : every 8s
+  Max checks  : 10
   Deal checks : [3, 7] (mock simulation)
 ═════════════════════════════════════════════════════════════════
 
 ─────────────────────────────────────────────────────────────────
   CHECK 1/10  [14:02:03]
 ─────────────────────────────────────────────────────────────────
-  [INFO] Check #1: ICN→NRT | Cheapest: $347.21 USD | Threshold: $280.00 USD
   ⏭  No deal this check. Cheapest: $347.21 USD
   ⏳ Next check in 8s...
 
 ─────────────────────────────────────────────────────────────────
   CHECK 3/10  [14:02:20]
 ─────────────────────────────────────────────────────────────────
-  [INFO] Check #3: ICN→NRT | Cheapest: $198.45 USD | Threshold: $280.00 USD
   ✅ BOOKED! Reference: AGNT48271  Price: $198.45 USD
 
 ═════════════════════════════════════════════════════════════════
@@ -127,6 +172,13 @@ python -m examples.flight_monitor.run \
 ═════════════════════════════════════════════════════════════════
 ```
 
+### Live 모드 출력 (딜 감지 시)
+
+```
+  ✅ BOOKED! Reference: DEAL-KE703-20260715  Price: $198.45 USD
+  🔗 Complete booking: https://www.google.com/flights#search;iti=ICN*NRT/2026-07-15;tt=o
+```
+
 ---
 
 ## 환경 변수
@@ -134,71 +186,48 @@ python -m examples.flight_monitor.run \
 | 변수 | 기본값 | 설명 |
 |------|--------|------|
 | `OPENAI_API_KEY` | — | 필수 |
-| `NOTIFICATION_DRY_RUN` | `true` | `true`이면 Slack/이메일 발송 없이 콘솔 출력 |
+| `FLIGHT_API_MODE` | `mock` | 기본 모드 (`mock` \| `amadeus`) |
+| `AMADEUS_CLIENT_ID` | `""` | Amadeus Client ID (live 모드) |
+| `AMADEUS_CLIENT_SECRET` | `""` | Amadeus Client Secret (live 모드) |
+| `AMADEUS_BASE_URL` | `https://test.api.amadeus.com` | 테스트/운영 URL 전환 |
+| `NOTIFICATION_DRY_RUN` | `true` | `true`이면 Slack/이메일 콘솔 출력 |
 | `EMAIL_RECIPIENT` | `traveler@example.com` | 예약 확인 이메일 수신자 |
 
 ---
 
 ## 주요 설계 포인트
 
-### 단일 ToolNode + `active_phase` 라우팅
-하나의 공유 ToolNode가 모든 에이전트의 tool call을 처리합니다. 각 에이전트는 `active_phase` 필드를 설정하여 tool 실행 완료 후 어느 에이전트로 복귀할지 알려줍니다.
+### Flight Client 추상화 (`mcp/flight.py`)
+
+`BaseFlightClient` ABC를 중심으로 Mock과 Amadeus 구현을 교체 가능하게 설계했습니다.
 
 ```python
-# workflow.py — tools 노드에서의 복귀 라우팅
-def _route_after_tools(state: FlightState) -> str:
-    return state.get("active_phase", "search")
+# run.py — 모드에 따라 한 번만 설정
+if criteria.mode == "mock":
+    configure_flight_client(MockFlightClient(base_url=api.base_url))
+else:
+    configure_flight_client(AmadeusFlightClient(client_id, client_secret))
+
+# tools/flight_tools.py — 에이전트가 호출하는 도구
+@tool
+def flight_search(origin, destination, date, max_price, check_number=0) -> str:
+    return json.dumps(get_flight_client().search(...).to_dict())
 ```
+
+에이전트는 `flight_search`/`flight_book`만 알고 백엔드를 알 필요가 없습니다.
+
+### Amadeus OAuth2 토큰 캐싱
+
+`AmadeusFlightClient`가 내부적으로 OAuth2 토큰을 관리합니다. 만료 60초 전에 자동 갱신되므로 에이전트 코드에서 별도 처리가 불필요합니다.
 
 ### Pydantic Structured Output (PriceAnalysisAgent)
-`PriceAnalysisAgent`는 tool call 없이 LLM structured output(`_PriceDecision`)으로 의사결정합니다. 불필요한 LLM 왕복을 제거하여 비용을 절감합니다.
 
-```python
-class _PriceDecision(BaseModel):
-    should_book: bool
-    cheapest_price: float
-    cheapest_airline: str
-    cheapest_flight_id: str
-    ...
+`PriceAnalysisAgent`는 tool call 없이 `_PriceDecision` 스키마로 의사결정합니다. 불필요한 LLM 왕복을 제거하여 비용과 지연을 절감합니다.
 
-llm = ChatOpenAI(...).with_structured_output(_PriceDecision)
-```
+### 단일 ToolNode + `active_phase` 라우팅
 
-### 암호화 Credential 관리
-`BookingAgent`는 `auth_get_key`로 Fernet 암호화된 API 키를 복호화하여 사용합니다. 키는 실행 시작 시 `auth_store_key`로 볼트에 저장됩니다.
-
-```python
-# run.py
-auth_store_key.invoke({"service": "flight-api", "key": "demo-api-key-xyz"})
-
-# agents.py — BookingAgent의 tool set
-BOOKING_TOOLS = [http_post, memory_get, memory_set, auth_get_key, notify_console]
-```
-
-### MockFlightAPI 내장 HTTP 서버
-`ThreadingHTTPServer`로 구현된 로컬 mock API가 백그라운드 스레드로 실행됩니다. 에이전트는 실제 외부 API와 동일한 `http_get`/`http_post` 인터페이스를 사용합니다.
-
-```python
-api = MockFlightAPI(port=18990, cheap_on_checks=[3, 7]).start()
-# GET  /api/flights/search?origin=ICN&destination=NRT&date=...&max_price=280
-# POST /api/flights/book  { flight_id, airline, price, passenger_name, ... }
-# GET  /api/health
-```
-
-`cheap_on_checks` 파라미터로 몇 번째 체크에서 딜이 발생할지 지정 → 실제 API 없이 전체 예약 플로우를 결정론적으로 테스트 가능합니다.
-
-### 모니터링 루프 분리
-그래프는 단일 체크 사이클만 담당하고, 루프 반복은 `run.py`에서 관리합니다. 그래프를 독립적으로 재사용하거나 단위 테스트하기 쉽습니다.
-
-```python
-# run.py
-app = build_flight_graph()
-for check in range(1, criteria.max_checks + 1):
-    result = app.invoke(_build_initial_state(criteria, api, check))
-    if result.get("booking_confirmed"):
-        break
-    time.sleep(criteria.check_interval_sec)
-```
+하나의 공유 ToolNode가 모든 에이전트의 tool call을 처리합니다. 각 에이전트는 `active_phase` 필드를 설정하여 tool 실행 후 어느 에이전트로 복귀할지 알려줍니다.
 
 ### `extract_booking_result` 인라인 상태 갱신
-BookingAgent의 tool call 완료 후, LLM 호출 없이 메모리에서 예약 확인 정보를 읽어 `FlightState`를 갱신합니다. NotificationAgent가 `booking_reference`와 `confirmed_price`를 프롬프트에서 직접 참조할 수 있게 됩니다.
+
+BookingAgent 완료 후 LLM 호출 없이 메모리에서 예약 확인 정보를 읽어 `FlightState`를 갱신합니다. `booking_url` 필드도 여기서 state로 전파되어 NotificationAgent가 딥 링크를 알림에 포함할 수 있습니다.

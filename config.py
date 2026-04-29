@@ -57,6 +57,14 @@ HTTP_MAX_RETRIES: int = int(os.getenv("HTTP_MAX_RETRIES", "3"))
 # ── Auth MCP ───────────────────────────────────────────────────────────────────
 AUTH_FERNET_KEY: str = os.getenv("AUTH_FERNET_KEY", "")
 
+# ── Flight Monitor ──────────────────────────────────────────────────────────────
+# Mode: "mock" (default) | "amadeus"
+FLIGHT_API_MODE: str = os.getenv("FLIGHT_API_MODE", "mock")
+# Amadeus for Developers — https://developers.amadeus.com
+AMADEUS_CLIENT_ID: str = os.getenv("AMADEUS_CLIENT_ID", "")
+AMADEUS_CLIENT_SECRET: str = os.getenv("AMADEUS_CLIENT_SECRET", "")
+AMADEUS_BASE_URL: str = os.getenv("AMADEUS_BASE_URL", "https://test.api.amadeus.com")
+
 # ── Notification MCP ──────────────────────────────────────────────────────────
 SMTP_HOST: str = os.getenv("SMTP_HOST", "")
 SMTP_PORT: int = int(os.getenv("SMTP_PORT", "587"))

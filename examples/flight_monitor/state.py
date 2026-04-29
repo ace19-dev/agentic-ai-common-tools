@@ -33,7 +33,8 @@ class FlightState(TypedDict):
     max_price: float      # Price threshold in USD — book if cheaper
     currency: str         # Display currency ("USD")
     passenger_name: str   # Passenger name for the booking
-    api_base_url: str     # Base URL of the flight search/booking API
+    passenger_email: str  # Contact email for booking confirmation
+    api_base_url: str     # Base URL of the flight search/booking API (mock only)
 
     # ── Per-cycle state ────────────────────────────────────────────────────────
     check_number: int                  # Current monitoring iteration (1-indexed)
@@ -51,3 +52,4 @@ class FlightState(TypedDict):
     booking_confirmed: bool            # True when the booking API returns CONFIRMED
     booking_reference: Optional[str]   # Booking confirmation code, e.g. "AGNT48271"
     confirmed_price: Optional[float]   # Final booked price
+    booking_url: Optional[str]         # Google Flights deep-link (live/Amadeus mode only)

@@ -18,8 +18,8 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 26개 도메인-독립 tool |
-| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 6개 MCP 클래스 (플러그인 백엔드) |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 28개 도메인-독립 tool |
+| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 7개 MCP 클래스 (플러그인 백엔드) |
 
 ---
 
@@ -363,7 +363,7 @@ MONITORING_TARGETS=https://api.example.com/health python -m examples.monitoring_
 
 ### Example 4: Flight Monitor Agent ✈️
 
-> **사용 Tool**: `http_get` · `http_post` · `memory_get` · `memory_set` · `auth_get_key` · `notify_slack` · `notify_email` · `notify_console`
+> **사용 Tool**: `flight_search` · `flight_book` · `memory_get` · `memory_set` · `notify_slack` · `notify_email` · `notify_console`
 
 ![Flight Monitor Workflow](assets/flight_monitor_workflow.svg)
 
@@ -373,28 +373,27 @@ MONITORING_TARGETS=https://api.example.com/health python -m examples.monitoring_
 
 | 에이전트 | 역할 | 전용 Tool |
 |----------|------|-----------|
-| `SearchAgent` | 항공권 검색 API 호출, 결과를 memory에 저장 | `http_get`, `memory_set`, `notify_console` |
+| `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` |
 | `PriceAnalysisAgent` | 가격 vs 임계값 비교 후 예약 여부 결정 | `memory_get` + **Pydantic Structured Output** (tool call 없음) |
-| `BookingAgent` | 예약 API 호출, 암호화된 API 키 사용, 확인서 저장 | `http_post`, `auth_get_key`, `memory_set` |
-| `NotificationAgent` | Slack + 이메일 예약 확인 알림 발송 | `notify_slack`, `notify_email`, `memory_set` |
+| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` |
+| `NotificationAgent` | Slack + 이메일 예약 확인 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` |
 
 **워크플로우:**
 ```
 START (check N)
     ↓
-SearchAgent ──[http_get]──→ /api/flights/search
-                             결과를 memory_set(latest_search)
+SearchAgent ──[flight_search]──→ 검색 결과 반환
+                                 memory_set(latest_search)
     ↓
 PriceAnalysisAgent ──[memory_get]──→ 가격 비교
     ↓
 [cheapest_price < max_price?]
-   YES ──→ BookingAgent ──[http_post]──→ /api/flights/book
+   YES ──→ BookingAgent ──[flight_book]──→ 예약 실행
                           memory_set(booking_confirmation)
-                          auth_get_key(flight-api)
-               ↓ extract_booking_result (FlightState 갱신)
+               ↓ extract_booking_result (FlightState 갱신 + booking_url 전파)
                ↓
    NO ──→  NotificationAgent
-               ├── booking_confirmed=True: notify_slack(#travel-alerts) + notify_email
+               ├── booking_confirmed=True: notify_slack + notify_email (booking_url 포함)
                └── booking_confirmed=False: notify_console(no deal)
     ↓
    END (cycle)
@@ -404,10 +403,10 @@ PriceAnalysisAgent ──[memory_get]──→ 가격 비교
 
 **실행:**
 ```bash
-# 기본 설정 (ICN→NRT, 임계값 $280, 최대 10회 체크, 3번째·7번째에서 딜 발생)
+# Mock 모드 (기본값 — 설정 없이 즉시 실행)
 python -m examples.flight_monitor.run
 
-# 커스텀 설정
+# Mock — 커스텀 설정
 python -m examples.flight_monitor.run \
   --origin ICN --dest BKK \
   --date 2026-08-01 \
@@ -415,6 +414,9 @@ python -m examples.flight_monitor.run \
   --interval 5 \
   --max-checks 8 \
   --cheap-on 2 5
+
+# Live 모드 — 실제 Amadeus API (.env에 자격증명 설정 후)
+python -m examples.flight_monitor.run --mode amadeus --origin ICN --dest NRT --date 2026-07-15
 ```
 
 **출력 예시:**
@@ -447,17 +449,18 @@ python -m examples.flight_monitor.run \
 
 | 포인트 | 설명 |
 |--------|------|
+| **플러그인 Flight Client** | `mcp/flight.py`의 `BaseFlightClient` ABC를 중심으로 Mock과 Amadeus 구현이 교체 가능 — `configure_flight_client()` 한 번 호출로 모드 전환 |
+| **Amadeus OAuth2 자동 갱신** | `AmadeusFlightClient`가 토큰 만료 60초 전에 자동 재발급 — 에이전트 코드에서 인증 관리 불필요 |
 | **단일 ToolNode + `active_phase` 라우팅** | 하나의 공유 ToolNode가 모든 에이전트의 tool call을 처리하고, `FlightState.active_phase` 필드를 보고 어느 에이전트로 복귀할지 결정 |
 | **Pydantic Structured Output** | `PriceAnalysisAgent`는 tool call 없이 LLM structured output(`_PriceDecision`)으로 의사결정 → 불필요한 LLM 왕복 제거, 비용 절감 |
-| **암호화 Credential 관리** | `auth_store_key(service="flight-api", key=...)`로 API 키를 Fernet 암호화 저장, `BookingAgent`가 `auth_get_key`로 복호화하여 사용 |
-| **재현 가능한 Mock 시뮬레이션** | `cheap_on_checks=[3, 7]` 파라미터로 몇 번째 체크에서 딜이 발생할지 지정 → 실제 API 없이도 전체 예약 플로우를 결정론적으로 테스트 |
-| **MockFlightAPI 내장 HTTP 서버** | `ThreadingHTTPServer`로 구현된 로컬 mock API가 백그라운드 스레드로 실행 — 에이전트는 실제 외부 API와 동일한 `http_get`/`http_post` 인터페이스 사용 |
+| **Live 모드 딥 링크** | Amadeus 모드에서 딜 감지 시 Google Flights 딥 링크를 생성하여 Slack/이메일로 발송 — 실제 예약은 사용자가 링크로 완료 |
+| **재현 가능한 Mock 시뮬레이션** | `--cheap-on 3 7`으로 몇 번째 체크에서 딜이 발생할지 지정 → 실제 API 없이 전체 플로우를 결정론적으로 테스트 |
 | **모니터링 루프 분리** | 그래프는 단일 체크 사이클만 담당, 루프 반복은 `run.py`에서 관리 → 그래프 재사용 가능, 테스트 용이 |
 
 **핵심 조합 원리:**
-- `SearchAgent`와 `BookingAgent`는 각각 다른 HTTP 엔드포인트를 담당하여 **관심사 분리** 실현
+- `flight_search`/`flight_book` 전용 도구로 **API 추상화** — 에이전트는 백엔드를 알 필요 없음
 - `PriceAnalysisAgent`는 tool 호출 없이 **Structured Output**으로 의사결정 → API 비용 절감
-- `auth_get_key`로 API 인증 키를 암호화 저장하여 **보안 credential 관리** 시연
+- `booking_url`을 FlightState로 전파하여 NotificationAgent가 **딥 링크 알림** 생성
 - 모니터링 루프는 그래프 외부에서 관리 → **단일 사이클 재사용 가능** 설계
 
 ---
@@ -480,8 +483,9 @@ agentic_ai_project/
 │   ├── retrieval.py            # 문서 검색 (백엔드 선택: RETRIEVAL_BACKEND)
 │   ├── http.py                 # HTTP 클라이언트 (retry + backoff)
 │   ├── scheduler.py            # 잡 스케줄러 (백엔드 선택: SCHEDULER_BACKEND)
-│   ├── notification.py         # SMTP / Slack webhook / console
+│   ├── notification.py         # SMTP / Slack / Discord / Telegram / Teams / console
 │   ├── auth.py                 # Fernet 암호화 키 볼트 (SQLite)
+│   ├── flight.py               # 항공 검색/예약 클라이언트 (Mock / Amadeus)
 │   └── backends/               # 플러그인 백엔드 구현체
 │       ├── memory/
 │       │   ├── base.py         # BaseMemoryBackend ABC
@@ -498,14 +502,15 @@ agentic_ai_project/
 │           ├── apscheduler.py  # APScheduler + SQLite (기본값)
 │           └── celery.py       # Celery + Redis/RabbitMQ
 │
-├── tools/                      # LangChain @tool 래퍼 (26개 tool)
+├── tools/                      # LangChain @tool 래퍼 (28개 tool)
 │   ├── memory_tools.py         # 4 tools
 │   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
 │   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
 │   ├── http_tools.py           # 2 tools
 │   ├── scheduler_tools.py      # 3 tools
 │   ├── notification_tools.py   # 3 tools
-│   └── auth_tools.py           # 5 tools
+│   ├── auth_tools.py           # 5 tools
+│   └── flight_tools.py         # 2 tools (configure_flight_client() 필요)
 │
 ├── agents/
 │   ├── planner.py              # 실행 계획 생성 에이전트
