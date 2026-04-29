@@ -53,7 +53,15 @@ START
 
 ### Memory Tools
 
-`MemoryMCP` — SQLite 기반 영속 KV 스토어 (네임스페이스 + TTL 지원)
+`MemoryMCP` — 플러그인 가능한 영속 KV 스토어 (네임스페이스 + TTL 지원)
+
+`MEMORY_BACKEND` 환경 변수로 백엔드를 선택합니다.
+
+| 백엔드 | 값 | 특징 | 추가 설치 |
+|--------|---|------|-----------|
+| **SQLite** | `sqlite` _(기본값)_ | 제로 설정, 파일 기반 | — |
+| **PostgreSQL** | `postgres` | 운영 환경용 관계형 KV 스토어 | `psycopg2-binary` |
+| **Vector (ChromaDB)** | `vector` | `memory_search` 시맨틱 검색 지원 | `chromadb` |
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
@@ -61,12 +69,21 @@ START
 | `memory_set` | 값 저장 (TTL 선택) | `key`, `value`, `namespace`, `ttl=0` |
 | `memory_delete` | 키 삭제 | `key`, `namespace` |
 | `memory_list_keys` | 네임스페이스 내 전체 키 목록 | `namespace="default"` |
+| `memory_search` | 시맨틱 유사도 검색 _(vector 전용)_ | `query`, `namespace`, `top_k=5` |
 
 ---
 
 ### Retrieval Tools
 
-`RetrievalMCP` — TF-IDF 코사인 유사도 기반 문서 검색 (SQLite 문서 저장소)
+`RetrievalMCP` — 플러그인 가능한 문서 검색 엔진
+
+`RETRIEVAL_BACKEND` 환경 변수로 백엔드를 선택합니다.
+
+| 백엔드 | 값 | 특징 | 추가 설치 |
+|--------|---|------|-----------|
+| **TF-IDF + SQLite** | `tfidf_sqlite` _(기본값)_ | 코사인 유사도, 최대 ~100K 문서 | — |
+| **Vector (ChromaDB)** | `vector` | 임베딩 시맨틱 검색, 동의어/패러프레이즈 처리 | `chromadb` |
+| **PostgreSQL** | `postgres` | `tsvector` 전문 검색, 대규모 코퍼스 | `psycopg2-binary` |
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
@@ -91,7 +108,14 @@ START
 
 ### Scheduler Tools
 
-`SchedulerMCP` — APScheduler + SQLite 기반 백그라운드 작업 스케줄러
+`SchedulerMCP` — 플러그인 가능한 백그라운드 작업 스케줄러
+
+`SCHEDULER_BACKEND` 환경 변수로 백엔드를 선택합니다.
+
+| 백엔드 | 값 | 특징 | 추가 설치 |
+|--------|---|------|-----------|
+| **APScheduler** | `apscheduler` _(기본값)_ | 인-프로세스, SQLite 영속 | — |
+| **Celery** | `celery` | 분산 실행, Redis/RabbitMQ 브로커 | `celery[redis]` |
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
@@ -398,16 +422,31 @@ agentic_ai_project/
 ├── core/
 │   └── base_mcp.py             # BaseMCP 추상 클래스 + MCPResult 데이터클래스
 │
-├── mcp/                        # MCP 구현체 (백엔드 어댑터)
-│   ├── memory.py               # SQLite KV 스토어 (TTL + namespace)
-│   ├── retrieval.py            # TF-IDF 벡터 검색 (SQLite 문서 저장소)
+├── mcp/                        # MCP 퍼사드 — 백엔드에 위임
+│   ├── memory.py               # KV 스토어 (백엔드 선택: MEMORY_BACKEND)
+│   ├── retrieval.py            # 문서 검색 (백엔드 선택: RETRIEVAL_BACKEND)
 │   ├── http.py                 # HTTP 클라이언트 (retry + backoff)
-│   ├── scheduler.py            # APScheduler 잡 스케줄러 (SQLite 영속)
+│   ├── scheduler.py            # 잡 스케줄러 (백엔드 선택: SCHEDULER_BACKEND)
 │   ├── notification.py         # SMTP / Slack webhook / console
-│   └── auth.py                 # Fernet 암호화 키 볼트 (SQLite)
+│   ├── auth.py                 # Fernet 암호화 키 볼트 (SQLite)
+│   └── backends/               # 플러그인 백엔드 구현체
+│       ├── memory/
+│       │   ├── base.py         # BaseMemoryBackend ABC
+│       │   ├── sqlite.py       # SQLite (기본값)
+│       │   ├── postgres.py     # PostgreSQL
+│       │   └── vector.py       # ChromaDB + semantic search()
+│       ├── retrieval/
+│       │   ├── base.py         # BaseRetrievalBackend ABC
+│       │   ├── tfidf_sqlite.py # TF-IDF + SQLite (기본값)
+│       │   ├── vector.py       # ChromaDB 임베딩 검색
+│       │   └── postgres.py     # PostgreSQL tsvector 전문 검색
+│       └── scheduler/
+│           ├── base.py         # BaseSchedulerBackend ABC
+│           ├── apscheduler.py  # APScheduler + SQLite (기본값)
+│           └── celery.py       # Celery + Redis/RabbitMQ
 │
-├── tools/                      # LangChain @tool 래퍼 (19개 tool)
-│   ├── memory_tools.py         # 4 tools
+├── tools/                      # LangChain @tool 래퍼 (20개 tool)
+│   ├── memory_tools.py         # 5 tools (memory_search 추가)
 │   ├── retrieval_tools.py      # 3 tools
 │   ├── http_tools.py           # 2 tools
 │   ├── scheduler_tools.py      # 3 tools
@@ -440,11 +479,13 @@ agentic_ai_project/
 │   ├── mcp_tools_map.svg
 │   └── flight_monitor_workflow.svg
 │
-└── data/                       # 런타임 생성 (SQLite 파일 저장)
-    ├── memory.db
-    ├── retrieval.db
-    ├── scheduler.db
-    └── auth.db
+└── data/                       # 런타임 생성
+    ├── memory.db               # MEMORY_BACKEND=sqlite
+    ├── retrieval.db            # RETRIEVAL_BACKEND=tfidf_sqlite
+    ├── scheduler.db            # SCHEDULER_BACKEND=apscheduler
+    ├── auth.db
+    ├── vector_memory/          # MEMORY_BACKEND=vector (ChromaDB)
+    └── vector_retrieval/       # RETRIEVAL_BACKEND=vector (ChromaDB)
 ```
 
 ---
@@ -465,14 +506,45 @@ cp .env.example .env
 # 테스트용: NOTIFICATION_DRY_RUN=true (기본값)
 ```
 
-### 3. Generate Auth encryption key (선택)
+### 3. (선택) 다른 백엔드 설치
+
+```bash
+# PostgreSQL 백엔드 (Memory 또는 Retrieval)
+pip install psycopg2-binary
+
+# Vector 백엔드 — ChromaDB (Memory 또는 Retrieval)
+pip install chromadb
+
+# Celery 백엔드 (Scheduler)
+pip install celery[redis]
+```
+
+`.env`에서 백엔드를 선택합니다:
+
+```bash
+# Memory 백엔드
+MEMORY_BACKEND=sqlite        # 기본값 — 제로 설정
+MEMORY_BACKEND=postgres      # PostgreSQL; MEMORY_POSTGRES_DSN 필요
+MEMORY_BACKEND=vector        # ChromaDB; memory_search 툴 활성화
+
+# Retrieval 백엔드
+RETRIEVAL_BACKEND=tfidf_sqlite  # 기본값 — TF-IDF 코사인 유사도
+RETRIEVAL_BACKEND=vector        # ChromaDB 임베딩 시맨틱 검색
+RETRIEVAL_BACKEND=postgres      # PostgreSQL tsvector 전문 검색
+
+# Scheduler 백엔드
+SCHEDULER_BACKEND=apscheduler  # 기본값 — 인-프로세스
+SCHEDULER_BACKEND=celery        # 분산 실행; SCHEDULER_CELERY_BROKER 필요
+```
+
+### 4. Generate Auth encryption key (선택)
 
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 # 출력값을 .env의 AUTH_FERNET_KEY에 설정
 ```
 
-### 4. Run
+### 5. Run
 
 ```bash
 # 커스텀 작업
@@ -490,8 +562,10 @@ python main.py --example monitoring
 
 **도메인 독립성**: 모든 MCP와 Tool은 특정 도메인 로직 없이 구현되어 있습니다. 고객 지원, 연구, 모니터링, 금융, 의료 등 어떤 도메인에서도 동일한 Tool을 재사용할 수 있습니다.
 
-**단방향 의존성**: `Tool → MCP → Backend` 방향으로만 의존합니다. 에이전트는 Tool만 알고, MCP 구현은 교체 가능합니다.
+**플러그인 백엔드**: Memory, Retrieval, Scheduler는 환경 변수 하나로 백엔드를 교체합니다. `BaseMemoryBackend` / `BaseRetrievalBackend` / `BaseSchedulerBackend` ABC를 구현하면 새로운 백엔드를 추가할 수 있습니다. 에이전트 코드와 Tool 코드는 변경 없이 그대로 사용합니다.
 
-**Singleton MCP**: 각 MCP는 프로세스당 하나의 인스턴스를 유지합니다. DB 연결을 공유하여 리소스를 절약하고, Tool에서 `get_xxx_mcp()` 팩토리로 접근합니다.
+**단방향 의존성**: `Tool → MCP → Backend → DB/Service` 방향으로만 의존합니다. 에이전트는 Tool만 알고, MCP 구현과 백엔드는 교체 가능합니다.
+
+**Singleton MCP**: 각 MCP는 프로세스당 하나의 인스턴스를 유지합니다. 백엔드 연결을 공유하여 리소스를 절약하고, Tool에서 `get_xxx_mcp()` 팩토리로 접근합니다.
 
 **Dry-run 우선**: `NOTIFICATION_DRY_RUN=true`로 실제 이메일/Slack 발송 없이 전체 워크플로우를 안전하게 테스트할 수 있습니다.
