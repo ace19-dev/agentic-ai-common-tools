@@ -86,6 +86,24 @@ python -m examples.flight_monitor.run \
 
 ### Live 모드 — Amadeus (실제 항공 데이터)
 
+#### Amadeus란?
+
+Amadeus는 항공·여행 업계의 글로벌 IT 기업으로, 항공사·호텔·렌터카 예약 시스템의 핵심 인프라를 운영합니다.
+대한항공·아시아나·제주항공 등 대부분의 항공사 재고가 Amadeus GDS(Global Distribution System)를 통해 공급되며, 스카이스캐너·네이버 항공권 같은 서비스들이 내부적으로 Amadeus 데이터를 사용합니다.
+
+[Amadeus for Developers](https://developers.amadeus.com) 플랫폼을 통해 REST API를 무료로 제공합니다.
+
+| 환경 | 비용 | 설명 |
+|------|------|------|
+| **Test** | 무료 | 실제와 유사한 항공 데이터, 예약은 가상 처리 |
+| **Production** | 유료 | 실제 항공권 예약 가능 |
+
+이 프로젝트에서 사용하는 API:
+- `GET /v2/shopping/flight-offers` — 실제 항공권 검색 (가격·스케줄)
+- `POST /v1/security/oauth2/token` — OAuth2 인증 토큰 발급
+
+---
+
 **1단계: Amadeus 계정 생성 (무료)**
 1. [developers.amadeus.com](https://developers.amadeus.com) → Sign Up → My Apps → Create New App
 2. Test 환경의 `Client ID` + `Client Secret` 확인
