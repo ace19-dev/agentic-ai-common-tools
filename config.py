@@ -34,9 +34,10 @@ AUTH_DB_PATH: str = os.getenv("AUTH_DB_PATH", str(DATA_DIR / "auth.db"))
 MEMORY_DB_PATH: str = os.getenv("MEMORY_DB_PATH", str(DATA_DIR / "memory.db"))
 
 # ── Retrieval MCP backend ───────────────────────────────────────────────────────
-# Options: tfidf_sqlite (default) | vector | postgres
+# Options: tfidf_sqlite (default) | bm25_sqlite | vector | postgres
 RETRIEVAL_BACKEND: str = os.getenv("RETRIEVAL_BACKEND", "tfidf_sqlite")
 RETRIEVAL_DB_PATH: str = os.getenv("RETRIEVAL_DB_PATH", str(DATA_DIR / "retrieval.db"))
+RETRIEVAL_BM25_DB_PATH: str = os.getenv("RETRIEVAL_BM25_DB_PATH", str(DATA_DIR / "retrieval_bm25.db"))
 RETRIEVAL_VECTOR_PATH: str = os.getenv("RETRIEVAL_VECTOR_PATH", str(DATA_DIR / "vector_retrieval"))
 RETRIEVAL_VECTOR_COLLECTION: str = os.getenv("RETRIEVAL_VECTOR_COLLECTION", "agent_retrieval")
 RETRIEVAL_POSTGRES_DSN: str = os.getenv("RETRIEVAL_POSTGRES_DSN", "")
@@ -63,6 +64,10 @@ SMTP_USER: str = os.getenv("SMTP_USER", "")
 SMTP_PASSWORD: str = os.getenv("SMTP_PASSWORD", "")
 SMTP_FROM: str = os.getenv("SMTP_FROM", SMTP_USER)
 SLACK_WEBHOOK_URL: str = os.getenv("SLACK_WEBHOOK_URL", "")
+DISCORD_WEBHOOK_URL: str = os.getenv("DISCORD_WEBHOOK_URL", "")
+TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "")
+TEAMS_WEBHOOK_URL: str = os.getenv("TEAMS_WEBHOOK_URL", "")
 NOTIFICATION_DRY_RUN: bool = os.getenv("NOTIFICATION_DRY_RUN", "true").lower() == "true"
 
 # ── Logging ─────────────────────────────────────────────────────────────────────

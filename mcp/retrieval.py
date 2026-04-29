@@ -3,6 +3,7 @@ Retrieval MCP — document search with pluggable backends.
 
 Backend is selected via the RETRIEVAL_BACKEND environment variable:
   tfidf_sqlite (default) — TF-IDF cosine similarity + SQLite document store
+  bm25_sqlite            — BM25 ranking via SQLite FTS5 (no extra deps)
   vector                 — ChromaDB embedding-based semantic search
   postgres               — PostgreSQL tsvector full-text search
 """
@@ -56,6 +57,10 @@ _instance: Optional[RetrievalMCP] = None
 
 def _create_backend() -> BaseRetrievalBackend:
     backend_type = config.RETRIEVAL_BACKEND.lower()
+    if backend_type == "bm25_sqlite":
+        from mcp.backends.retrieval.bm25_sqlite import BM25SQLiteRetrievalBackend
+        logger.info("Retrieval backend: BM25 + SQLite FTS5")
+        return BM25SQLiteRetrievalBackend(db_path=config.RETRIEVAL_BM25_DB_PATH)
     if backend_type == "vector":
         from mcp.backends.retrieval.vector import VectorRetrievalBackend
         logger.info("Retrieval backend: ChromaDB (vector)")

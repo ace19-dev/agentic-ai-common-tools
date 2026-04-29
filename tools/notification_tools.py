@@ -1,7 +1,8 @@
 """
-LangChain @tool wrappers for the Notification MCP (email, Slack, console).
+LangChain @tool wrappers for the Notification MCP
+(email, Slack, Discord, Telegram, MS Teams, console).
 
-All three tools are safe to call in dry-run mode (NOTIFICATION_DRY_RUN=true),
+All tools are safe to call in dry-run mode (NOTIFICATION_DRY_RUN=true),
 which is the default — they print to console instead of contacting external
 services, making the system fully testable without real credentials.
 """
@@ -51,6 +52,63 @@ def notify_slack(channel: str, message: str) -> str:
         or 'ERROR: ...' on webhook failure.
     """
     return _mcp.slack(channel, message).to_tool_str()
+
+
+@tool
+def notify_discord(message: str) -> str:
+    """Post a message to a Discord channel via incoming webhook.
+
+    In dry-run mode or when DISCORD_WEBHOOK_URL is not configured, the message
+    is printed to the console instead of being sent.
+
+    Args:
+        message: Message text. Supports Discord markdown:
+                 **bold**, *italic*, `code`, ```code block```.
+
+    Returns:
+        'sent' on success,
+        'dry_run' when running without Discord credentials,
+        or 'ERROR: ...' on webhook failure.
+    """
+    return _mcp.discord(message).to_tool_str()
+
+
+@tool
+def notify_telegram(message: str) -> str:
+    """Send a message via Telegram Bot API.
+
+    Uses TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID from environment.
+    In dry-run mode or when credentials are absent, prints to console.
+
+    Supports HTML tags in the message: <b>bold</b>, <i>italic</i>, <code>code</code>.
+
+    Args:
+        message: Message text. HTML formatting is supported.
+
+    Returns:
+        'sent' on success,
+        'dry_run' when running without Telegram credentials,
+        or 'ERROR: ...' on API failure.
+    """
+    return _mcp.telegram(message).to_tool_str()
+
+
+@tool
+def notify_teams(message: str) -> str:
+    """Post a message to a Microsoft Teams channel via incoming webhook.
+
+    Sends an Adaptive Card payload to the configured Teams webhook URL.
+    In dry-run mode or when TEAMS_WEBHOOK_URL is not configured, prints to console.
+
+    Args:
+        message: Message text to display in the Teams card.
+
+    Returns:
+        'sent' on success,
+        'dry_run' when running without Teams credentials,
+        or 'ERROR: ...' on webhook failure.
+    """
+    return _mcp.teams(message).to_tool_str()
 
 
 @tool

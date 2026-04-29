@@ -1,9 +1,12 @@
 """
-Notification MCP — email (SMTP), Slack webhook, and console output.
+Notification MCP — email (SMTP), Slack, Discord, Telegram, MS Teams, and console.
 
 Channel selection:
   - Email: port 465 → SMTP_SSL (implicit TLS); port 587 → SMTP + STARTTLS.
   - Slack: posts a JSON payload to the incoming webhook URL.
+  - Discord: posts to a Discord incoming webhook URL.
+  - Telegram: sends a message via the Bot API (token + chat_id).
+  - MS Teams: posts an Adaptive Card payload to a Teams incoming webhook URL.
   - Console: always available; used as a dry-run fallback for the other channels.
 
 When dry_run=True or credentials are absent the MCP silently falls back to
@@ -37,6 +40,10 @@ class NotificationMCP(BaseMCP):
                  smtp_password: str = "",
                  smtp_from: str = "",
                  slack_webhook_url: str = "",
+                 discord_webhook_url: str = "",
+                 telegram_bot_token: str = "",
+                 telegram_chat_id: str = "",
+                 teams_webhook_url: str = "",
                  dry_run: bool = False):
         self.smtp_host = smtp_host
         self.smtp_port = smtp_port
@@ -44,6 +51,10 @@ class NotificationMCP(BaseMCP):
         self.smtp_password = smtp_password
         self.smtp_from = smtp_from or smtp_user
         self.slack_webhook_url = slack_webhook_url
+        self.discord_webhook_url = discord_webhook_url
+        self.telegram_bot_token = telegram_bot_token
+        self.telegram_chat_id = telegram_chat_id
+        self.teams_webhook_url = teams_webhook_url
         self.dry_run = dry_run
 
     # ── Email ─────────────────────────────────────────────────────────────────
@@ -102,6 +113,90 @@ class NotificationMCP(BaseMCP):
             logger.error("notification.slack failed: %s", exc)
             return MCPResult.fail(str(exc))
 
+    # ── Discord ───────────────────────────────────────────────────────────────
+
+    def discord(self, message: str, webhook_url: Optional[str] = None) -> MCPResult:
+        url = webhook_url or self.discord_webhook_url
+        if self.dry_run or not url:
+            preview = f"[DRY-RUN DISCORD] {message}"
+            logger.info(preview)
+            print(preview)
+            return MCPResult.ok(data="dry_run")
+        try:
+            resp = requests.post(url, json={"content": message}, timeout=10)
+            # Discord returns 204 No Content on success
+            if resp.status_code in (200, 204):
+                return MCPResult.ok(data="sent")
+            return MCPResult.fail(
+                f"Discord webhook returned {resp.status_code}: {resp.text[:200]}"
+            )
+        except Exception as exc:
+            logger.error("notification.discord failed: %s", exc)
+            return MCPResult.fail(str(exc))
+
+    # ── Telegram ──────────────────────────────────────────────────────────────
+
+    def telegram(self, message: str,
+                 chat_id: Optional[str] = None,
+                 bot_token: Optional[str] = None) -> MCPResult:
+        token = bot_token or self.telegram_bot_token
+        cid = chat_id or self.telegram_chat_id
+        if self.dry_run or not token or not cid:
+            preview = f"[DRY-RUN TELEGRAM] chat={cid}: {message}"
+            logger.info(preview)
+            print(preview)
+            return MCPResult.ok(data="dry_run")
+        try:
+            url = f"https://api.telegram.org/bot{token}/sendMessage"
+            resp = requests.post(
+                url,
+                json={"chat_id": cid, "text": message, "parse_mode": "HTML"},
+                timeout=10,
+            )
+            data = resp.json()
+            if resp.status_code == 200 and data.get("ok"):
+                return MCPResult.ok(data="sent")
+            return MCPResult.fail(
+                f"Telegram API error: {data.get('description', resp.text[:200])}"
+            )
+        except Exception as exc:
+            logger.error("notification.telegram failed: %s", exc)
+            return MCPResult.fail(str(exc))
+
+    # ── MS Teams ──────────────────────────────────────────────────────────────
+
+    def teams(self, message: str, webhook_url: Optional[str] = None) -> MCPResult:
+        url = webhook_url or self.teams_webhook_url
+        if self.dry_run or not url:
+            preview = f"[DRY-RUN TEAMS] {message}"
+            logger.info(preview)
+            print(preview)
+            return MCPResult.ok(data="dry_run")
+        try:
+            payload = {
+                "type": "message",
+                "attachments": [
+                    {
+                        "contentType": "application/vnd.microsoft.card.adaptive",
+                        "content": {
+                            "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+                            "type": "AdaptiveCard",
+                            "version": "1.2",
+                            "body": [{"type": "TextBlock", "text": message, "wrap": True}],
+                        },
+                    }
+                ],
+            }
+            resp = requests.post(url, json=payload, timeout=10)
+            if resp.status_code == 202:
+                return MCPResult.ok(data="sent")
+            return MCPResult.fail(
+                f"Teams webhook returned {resp.status_code}: {resp.text[:200]}"
+            )
+        except Exception as exc:
+            logger.error("notification.teams failed: %s", exc)
+            return MCPResult.fail(str(exc))
+
     # ── Console ───────────────────────────────────────────────────────────────
 
     def console(self, level: str, message: str) -> MCPResult:
@@ -120,6 +215,9 @@ class NotificationMCP(BaseMCP):
             "dry_run": self.dry_run,
             "smtp_configured": bool(self.smtp_host and self.smtp_user),
             "slack_configured": bool(self.slack_webhook_url),
+            "discord_configured": bool(self.discord_webhook_url),
+            "telegram_configured": bool(self.telegram_bot_token and self.telegram_chat_id),
+            "teams_configured": bool(self.teams_webhook_url),
         })
 
 
@@ -139,6 +237,10 @@ def get_notification_mcp() -> NotificationMCP:
             smtp_password=config.SMTP_PASSWORD,
             smtp_from=config.SMTP_FROM,
             slack_webhook_url=config.SLACK_WEBHOOK_URL,
+            discord_webhook_url=config.DISCORD_WEBHOOK_URL,
+            telegram_bot_token=config.TELEGRAM_BOT_TOKEN,
+            telegram_chat_id=config.TELEGRAM_CHAT_ID,
+            teams_webhook_url=config.TEAMS_WEBHOOK_URL,
             dry_run=config.NOTIFICATION_DRY_RUN,
         )
     return _instance

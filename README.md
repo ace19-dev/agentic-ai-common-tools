@@ -73,6 +73,7 @@ START
 | 백엔드 | 값 | 특징 | 추가 설치 |
 |--------|---|------|-----------|
 | **TF-IDF + SQLite** | `tfidf_sqlite` _(기본값)_ | 코사인 유사도, 최대 ~100K 문서 | — |
+| **BM25 + SQLite FTS5** | `bm25_sqlite` | BM25 랭킹, 추가 의존성 없음, 수백만 doc 이상 처리 가능 | — |
 | **Vector (ChromaDB)** | `vector` | 임베딩 시맨틱 검색, 동의어/패러프레이즈 처리 | `chromadb` |
 | **PostgreSQL** | `postgres` | `tsvector` 전문 검색, 대규모 코퍼스 | `psycopg2-binary` |
 
@@ -164,15 +165,31 @@ TextChunker(chunk_size=500)  →  retrieval_index x N
 
 ### Notification Tools
 
-`NotificationMCP` — SMTP 이메일 · Slack 웹훅 · 콘솔 출력 (dry-run 지원)
+`NotificationMCP` — 멀티 채널 알림 서비스 (dry-run 지원)
+
+Retrieval/Scheduler와 달리 채널은 **단일 선택이 아닌 동시 구성**입니다.
+에이전트가 상황에 따라 적합한 채널 tool을 직접 선택합니다.
+환경 변수가 설정된 채널만 실제 발송되며, 미설정 채널은 자동으로 콘솔 출력으로 폴백됩니다.
+
+| 채널 | 용도 | 환경 변수 |
+|------|------|---------|
+| **SMTP 이메일** | 보고서·요약 전달 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` |
+| **Slack** | 팀 전체 알림 | `SLACK_WEBHOOK_URL` |
+| **Discord** | 개발팀·커뮤니티 알림 | `DISCORD_WEBHOOK_URL` |
+| **Telegram** | 온콜 담당자 모바일 푸시 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` |
+| **MS Teams** | 기업 내부 채널 알림 | `TEAMS_WEBHOOK_URL` |
+| **Console** | 항상 활성, dry-run 폴백 | — |
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
 | `notify_email` | 이메일 발송 | `to`, `subject`, `body` |
 | `notify_slack` | Slack 채널 메시지 | `channel`, `message` |
+| `notify_discord` | Discord 채널 메시지 | `message` |
+| `notify_telegram` | Telegram Bot 메시지 | `message` |
+| `notify_teams` | MS Teams 채널 메시지 (Adaptive Card) | `message` |
 | `notify_console` | 구조화된 콘솔 로그 | `level`, `message` |
 
-> `NOTIFICATION_DRY_RUN=true` 설정 시 실제 발송 없이 콘솔에 출력합니다.
+> `NOTIFICATION_DRY_RUN=true` 설정 시 모든 채널이 실제 발송 없이 콘솔에 출력합니다.
 
 ---
 
@@ -472,6 +489,7 @@ agentic_ai_project/
 │       │   ├── base.py         # BaseRetrievalBackend ABC
 │       │   ├── chunker.py      # TextChunker + clean_html_text 유틸리티
 │       │   ├── tfidf_sqlite.py # TF-IDF + SQLite (기본값)
+│       │   ├── bm25_sqlite.py  # BM25 + SQLite FTS5 (추가 의존성 없음)
 │       │   ├── vector.py       # ChromaDB 임베딩 검색
 │       │   └── postgres.py     # PostgreSQL tsvector 전문 검색
 │       └── scheduler/
@@ -517,6 +535,7 @@ agentic_ai_project/
 └── data/                       # 런타임 생성
     ├── memory.db               # MemoryMCP (SQLite)
     ├── retrieval.db            # RETRIEVAL_BACKEND=tfidf_sqlite
+    ├── retrieval_bm25.db       # RETRIEVAL_BACKEND=bm25_sqlite
     ├── scheduler.db            # SCHEDULER_BACKEND=apscheduler
     ├── auth.db
     └── vector_retrieval/       # RETRIEVAL_BACKEND=vector (ChromaDB)
@@ -561,6 +580,7 @@ pip install beautifulsoup4
 ```bash
 # Retrieval 백엔드
 RETRIEVAL_BACKEND=tfidf_sqlite  # 기본값 — TF-IDF 코사인 유사도
+RETRIEVAL_BACKEND=bm25_sqlite   # BM25 + SQLite FTS5 (추가 설치 불필요, 대용량 권장)
 RETRIEVAL_BACKEND=vector        # ChromaDB 임베딩 시맨틱 검색
 RETRIEVAL_BACKEND=postgres      # PostgreSQL tsvector 전문 검색
 
