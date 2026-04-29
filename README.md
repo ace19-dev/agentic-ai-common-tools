@@ -18,8 +18,8 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 19개 도메인-독립 tool |
-| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 6개 MCP 클래스 |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 26개 도메인-독립 tool |
+| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 6개 MCP 클래스 (플러그인 백엔드) |
 
 ---
 
@@ -87,9 +87,53 @@ START
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
-| `retrieval_search` | 자연어 쿼리로 문서 검색 | `query`, `top_k=5` |
-| `retrieval_index` | 문서를 인덱스에 추가/업데이트 | `doc_id`, `content`, `metadata="{}"` |
-| `retrieval_delete` | 문서 인덱스에서 제거 | `doc_id` |
+| `retrieval_index` | 문서를 인덱스에 추가/업데이트 (청킹 선택) | `doc_id`, `content`, `metadata="{}"`, `chunk_size=0`, `chunk_overlap=50` |
+| `retrieval_delete_chunks` | 소스 문서의 청크 전체 삭제 | `source_doc_id` |
+| `retrieval_delete` | 특정 문서(또는 청크) 삭제 | `doc_id` |
+| `retrieval_search` | 자연어 쿼리로 문서 검색 (메타데이터 필터 지원) | `query`, `top_k=5`, `filter="{}"` |
+| `retrieval_build_context` | 검색 결과를 LLM 프롬프트용 컨텍스트 문자열로 조립 | `query`, `top_k=5`, `max_chars=3000`, `filter="{}"` |
+
+**RAG 흐름:**
+```
+1. retrieval_index(chunk_size=500)   ← 문서를 청크 단위로 분할·인덱싱
+2. retrieval_build_context(query)    ← 관련 청크를 검색·조립하여 LLM 컨텍스트 반환
+   ↳ "[Source: doc-id | Score: 0.85]\n청크 내용...\n\n---\n\n[Source: ...]"
+```
+
+`filter` 파라미터로 메타데이터 필터링:
+```
+filter='{"category": "billing"}'         # 단일 필터
+filter='{"_source_id": "faq-001"}'       # 특정 소스 문서의 청크만 검색
+filter='{"category": "docs", "lang": "ko"}'  # 다중 필터 (AND 조건)
+```
+
+---
+
+### Crawl Tools (RAG 데이터 수집)
+
+`crawl_tools` — 웹 페이지를 fetch·정제·청킹하여 Retrieval 인덱스에 자동 적재하는 RAG 수집 파이프라인
+
+HTML 파싱 전략: BeautifulSoup 설치 시 고품질 텍스트 추출, 미설치 시 정규식 fallback
+
+| Tool | 설명 | 주요 파라미터 |
+|------|------|--------------|
+| `crawl_and_index` | 단일 URL을 fetch하여 청킹·인덱싱 | `url`, `doc_id=""`, `chunk_size=500`, `css_selector=""` |
+| `crawl_and_index_urls` | JSON 배열로 받은 여러 URL을 일괄 수집 | `urls_json`, `request_delay=1.0`, `metadata="{}"` |
+| `crawl_sitemap` | sitemap.xml을 파싱하여 전체 사이트 크롤링 | `sitemap_url`, `max_pages=50` |
+| `crawl_recursive` | 시작 URL에서 링크를 BFS로 따라가며 재귀 크롤링 | `start_url`, `max_pages=20`, `same_domain_only=True` |
+
+**크롤링 워크플로우:**
+```
+crawl_and_index(url)
+    ↓
+fetch URL  →  BeautifulSoup 정제  →  delete_chunks(기존 청크 제거)
+    ↓
+TextChunker(chunk_size=500)  →  retrieval_index x N
+    ↓
+"indexed 'url': 12 chunks"
+```
+
+> `beautifulsoup4` 설치를 권장합니다. `crawl_recursive`는 필수입니다.
 
 ---
 
@@ -437,6 +481,7 @@ agentic_ai_project/
 │       │   └── vector.py       # ChromaDB + semantic search()
 │       ├── retrieval/
 │       │   ├── base.py         # BaseRetrievalBackend ABC
+│       │   ├── chunker.py      # TextChunker + clean_html_text 유틸리티
 │       │   ├── tfidf_sqlite.py # TF-IDF + SQLite (기본값)
 │       │   ├── vector.py       # ChromaDB 임베딩 검색
 │       │   └── postgres.py     # PostgreSQL tsvector 전문 검색
@@ -445,9 +490,10 @@ agentic_ai_project/
 │           ├── apscheduler.py  # APScheduler + SQLite (기본값)
 │           └── celery.py       # Celery + Redis/RabbitMQ
 │
-├── tools/                      # LangChain @tool 래퍼 (20개 tool)
+├── tools/                      # LangChain @tool 래퍼 (26개 tool)
 │   ├── memory_tools.py         # 5 tools (memory_search 추가)
-│   ├── retrieval_tools.py      # 3 tools
+│   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
+│   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
 │   ├── http_tools.py           # 2 tools
 │   ├── scheduler_tools.py      # 3 tools
 │   ├── notification_tools.py   # 3 tools
@@ -517,6 +563,9 @@ pip install chromadb
 
 # Celery 백엔드 (Scheduler)
 pip install celery[redis]
+
+# HTML 파싱 품질 향상 (crawl_tools 사용 시 권장, crawl_recursive 필수)
+pip install beautifulsoup4
 ```
 
 `.env`에서 백엔드를 선택합니다:
@@ -567,5 +616,7 @@ python main.py --example monitoring
 **단방향 의존성**: `Tool → MCP → Backend → DB/Service` 방향으로만 의존합니다. 에이전트는 Tool만 알고, MCP 구현과 백엔드는 교체 가능합니다.
 
 **Singleton MCP**: 각 MCP는 프로세스당 하나의 인스턴스를 유지합니다. 백엔드 연결을 공유하여 리소스를 절약하고, Tool에서 `get_xxx_mcp()` 팩토리로 접근합니다.
+
+**RAG 파이프라인 내장**: `crawl_tools` → `retrieval_index(chunk_size>0)` → `retrieval_build_context` 조합으로 완전한 RAG 수집·검색·컨텍스트 조립 파이프라인이 구성됩니다. `TextChunker`는 문단 → 문장 → 문자 단계적 분할 전략을 사용하며, 재크롤링 시 기존 청크를 자동 교체합니다.
 
 **Dry-run 우선**: `NOTIFICATION_DRY_RUN=true`로 실제 이메일/Slack 발송 없이 전체 워크플로우를 안전하게 테스트할 수 있습니다.
