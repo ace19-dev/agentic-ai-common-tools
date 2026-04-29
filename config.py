@@ -28,10 +28,31 @@ BASE_DIR = Path(__file__).parent
 DATA_DIR = BASE_DIR / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
-MEMORY_DB_PATH: str = os.getenv("MEMORY_DB_PATH", str(DATA_DIR / "memory.db"))
-RETRIEVAL_DB_PATH: str = os.getenv("RETRIEVAL_DB_PATH", str(DATA_DIR / "retrieval.db"))
-SCHEDULER_DB_PATH: str = os.getenv("SCHEDULER_DB_PATH", str(DATA_DIR / "scheduler.db"))
 AUTH_DB_PATH: str = os.getenv("AUTH_DB_PATH", str(DATA_DIR / "auth.db"))
+
+# ── Memory MCP backend ──────────────────────────────────────────────────────────
+# Options: sqlite (default) | postgres | vector
+MEMORY_BACKEND: str = os.getenv("MEMORY_BACKEND", "sqlite")
+MEMORY_DB_PATH: str = os.getenv("MEMORY_DB_PATH", str(DATA_DIR / "memory.db"))
+MEMORY_POSTGRES_DSN: str = os.getenv("MEMORY_POSTGRES_DSN", "")
+MEMORY_VECTOR_PATH: str = os.getenv("MEMORY_VECTOR_PATH", str(DATA_DIR / "vector_memory"))
+MEMORY_VECTOR_COLLECTION: str = os.getenv("MEMORY_VECTOR_COLLECTION", "agent_memory")
+
+# ── Retrieval MCP backend ───────────────────────────────────────────────────────
+# Options: tfidf_sqlite (default) | vector | postgres
+RETRIEVAL_BACKEND: str = os.getenv("RETRIEVAL_BACKEND", "tfidf_sqlite")
+RETRIEVAL_DB_PATH: str = os.getenv("RETRIEVAL_DB_PATH", str(DATA_DIR / "retrieval.db"))
+RETRIEVAL_VECTOR_PATH: str = os.getenv("RETRIEVAL_VECTOR_PATH", str(DATA_DIR / "vector_retrieval"))
+RETRIEVAL_VECTOR_COLLECTION: str = os.getenv("RETRIEVAL_VECTOR_COLLECTION", "agent_retrieval")
+RETRIEVAL_POSTGRES_DSN: str = os.getenv("RETRIEVAL_POSTGRES_DSN", "")
+RETRIEVAL_POSTGRES_LANGUAGE: str = os.getenv("RETRIEVAL_POSTGRES_LANGUAGE", "english")
+
+# ── Scheduler MCP backend ───────────────────────────────────────────────────────
+# Options: apscheduler (default) | celery
+SCHEDULER_BACKEND: str = os.getenv("SCHEDULER_BACKEND", "apscheduler")
+SCHEDULER_DB_PATH: str = os.getenv("SCHEDULER_DB_PATH", str(DATA_DIR / "scheduler.db"))
+SCHEDULER_CELERY_BROKER: str = os.getenv("SCHEDULER_CELERY_BROKER", "")
+SCHEDULER_CELERY_RESULT_BACKEND: str = os.getenv("SCHEDULER_CELERY_RESULT_BACKEND", "")
 
 # ── HTTP MCP ───────────────────────────────────────────────────────────────────
 HTTP_TIMEOUT: int = int(os.getenv("HTTP_TIMEOUT_SECONDS", "10"))

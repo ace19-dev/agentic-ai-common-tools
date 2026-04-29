@@ -2,7 +2,7 @@
 LangChain @tool wrappers for the Memory MCP.
 
 Bound to the process-wide MemoryMCP singleton at import time so all agents
-share the same SQLite connection and namespace namespace.
+share the same backend instance. The backend is selected by MEMORY_BACKEND env var.
 """
 import json
 from langchain_core.tools import tool
@@ -77,3 +77,22 @@ def memory_list_keys(namespace: str = "default") -> str:
     if result.success:
         return json.dumps(result.data)
     return result.to_tool_str()
+
+
+@tool
+def memory_search(query: str, namespace: str = "default", top_k: int = 5) -> str:
+    """Semantic similarity search over stored memory (vector backend only).
+
+    Use this to find stored values that are semantically related to a query
+    even when the exact key is unknown. Requires MEMORY_BACKEND=vector.
+
+    Args:
+        query:     Natural language search query.
+        namespace: Restrict search to this namespace. Defaults to 'default'.
+        top_k:     Maximum number of results to return. Defaults to 5.
+
+    Returns:
+        JSON array: [{"key": ..., "value": ..., "score": 0.0-1.0, "namespace": ...}, ...]
+        Returns 'ERROR: ...' if the vector backend is not configured.
+    """
+    return _mcp.search(query, namespace=namespace, top_k=top_k).to_tool_str()

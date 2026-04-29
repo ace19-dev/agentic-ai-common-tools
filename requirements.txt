@@ -9,3 +9,16 @@ APScheduler>=3.10.0
 SQLAlchemy>=2.0.0
 cryptography>=42.0.0
 urllib3>=2.0.0
+
+# ── Optional: Memory / Retrieval backends ──────────────────────────────────────
+# Install the package matching your chosen backend env var.
+#
+# MEMORY_BACKEND=postgres  or  RETRIEVAL_BACKEND=postgres
+# psycopg2-binary>=2.9.0
+#
+# MEMORY_BACKEND=vector  or  RETRIEVAL_BACKEND=vector
+# chromadb>=0.4.0
+#
+# ── Optional: Scheduler backends ──────────────────────────────────────────────
+# SCHEDULER_BACKEND=celery
+# celery[redis]>=5.3.0

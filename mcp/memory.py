@@ -1,142 +1,64 @@
 """
-Memory MCP — persistent key-value store backed by SQLite.
+Memory MCP — persistent key-value store with pluggable backends.
 
-Schema: kv(namespace TEXT, key TEXT, value TEXT, expires_at REAL,
-            created_at REAL, updated_at REAL)
-PRIMARY KEY is (namespace, key), so the same key can exist in multiple
-namespaces without collision.  Expired entries are pruned lazily on get()
-rather than by a background sweep to avoid the need for a second thread.
+Backend is selected via the MEMORY_BACKEND environment variable:
+  sqlite   (default) — zero-config, file-backed SQLite store
+  postgres           — PostgreSQL; requires MEMORY_POSTGRES_DSN
+  vector             — ChromaDB; adds semantic search via memory_search tool
+
+The public API (set/get/delete/list_keys) is identical across all backends.
+The vector backend additionally exposes search() for similarity queries.
 """
-import json
+from __future__ import annotations
+
 import logging
-import os
-import sqlite3
-import time
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import config
 from core.base_mcp import BaseMCP, MCPResult
+from mcp.backends.memory.base import BaseMemoryBackend
 
 logger = logging.getLogger(__name__)
 
 
 class MemoryMCP(BaseMCP):
-    """Persistent key-value memory store backed by SQLite.
+    """Persistent key-value memory store. Delegates all operations to a backend.
 
     Supports namespaces for logical isolation and optional TTL-based expiry.
-    Each (namespace, key) pair is an independent record; expired entries are
-    lazily pruned on read.
+    The concrete backend is chosen at construction time via MEMORY_BACKEND env var.
     """
 
-    def __init__(self, db_path: str = "data/memory.db"):
-        self.db_path = db_path
-        os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
-        self._init_db()
-
-    # ── DB helpers ────────────────────────────────────────────────────────────
-
-    def _connect(self) -> sqlite3.Connection:
-        """Open a new SQLite connection; row_factory enables column-name access."""
-        conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        conn.row_factory = sqlite3.Row
-        return conn
-
-    def _init_db(self) -> None:
-        with self._connect() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS kv (
-                    namespace  TEXT NOT NULL DEFAULT 'default',
-                    key        TEXT NOT NULL,
-                    value      TEXT NOT NULL,
-                    expires_at REAL,
-                    created_at REAL NOT NULL,
-                    updated_at REAL NOT NULL,
-                    PRIMARY KEY (namespace, key)
-                )
-            """)
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_kv_expires ON kv(expires_at)")
-            conn.commit()
-
-    # ── Public API ────────────────────────────────────────────────────────────
+    def __init__(self, backend: BaseMemoryBackend):
+        self._backend = backend
 
     def set(self, key: str, value: Any,
             namespace: str = "default",
             ttl: Optional[int] = None) -> MCPResult:
-        """Store or update a value.  ON CONFLICT performs an upsert in a single statement."""
-        now = time.time()
-        expires_at = (now + ttl) if ttl and ttl > 0 else None
-        try:
-            with self._connect() as conn:
-                conn.execute("""
-                    INSERT INTO kv (namespace, key, value, expires_at, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON CONFLICT(namespace, key) DO UPDATE SET
-                        value      = excluded.value,
-                        expires_at = excluded.expires_at,
-                        updated_at = excluded.updated_at
-                """, (namespace, key, json.dumps(value, default=str), expires_at, now, now))
-                conn.commit()
-            return MCPResult.ok(data="stored")
-        except Exception as exc:
-            logger.error("memory.set failed: %s", exc)
-            return MCPResult.fail(str(exc))
+        return self._backend.set(key, value, namespace=namespace, ttl=ttl)
 
     def get(self, key: str, namespace: str = "default") -> MCPResult:
-        """Retrieve a value, returning fail() if the key is absent or has expired."""
-        now = time.time()
-        try:
-            with self._connect() as conn:
-                row = conn.execute(
-                    "SELECT value, expires_at FROM kv WHERE namespace=? AND key=?",
-                    (namespace, key),
-                ).fetchone()
-            if row is None:
-                return MCPResult.fail(f"key '{key}' not found in namespace '{namespace}'")
-            expires_at = row["expires_at"]
-            if expires_at is not None and expires_at < now:
-                self.delete(key, namespace)
-                return MCPResult.fail(f"key '{key}' has expired")
-            return MCPResult.ok(data=json.loads(row["value"]))
-        except Exception as exc:
-            logger.error("memory.get failed: %s", exc)
-            return MCPResult.fail(str(exc))
+        return self._backend.get(key, namespace=namespace)
 
     def delete(self, key: str, namespace: str = "default") -> MCPResult:
-        """Delete a key, returning fail() if it did not exist."""
-        try:
-            with self._connect() as conn:
-                cursor = conn.execute(
-                    "DELETE FROM kv WHERE namespace=? AND key=?", (namespace, key)
-                )
-                conn.commit()
-            if cursor.rowcount == 0:
-                return MCPResult.fail(f"key '{key}' not found")
-            return MCPResult.ok(data="deleted")
-        except Exception as exc:
-            logger.error("memory.delete failed: %s", exc)
-            return MCPResult.fail(str(exc))
+        return self._backend.delete(key, namespace=namespace)
 
     def list_keys(self, namespace: str = "default") -> MCPResult:
-        """Return all live (non-expired) keys in a namespace."""
-        now = time.time()
-        try:
-            with self._connect() as conn:
-                rows = conn.execute(
-                    "SELECT key FROM kv WHERE namespace=? AND (expires_at IS NULL OR expires_at > ?)",
-                    (namespace, now),
-                ).fetchall()
-            return MCPResult.ok(data=[r["key"] for r in rows])
-        except Exception as exc:
-            logger.error("memory.list_keys failed: %s", exc)
-            return MCPResult.fail(str(exc))
+        return self._backend.list_keys(namespace=namespace)
+
+    def search(self, query: str, namespace: str = "default", top_k: int = 5) -> MCPResult:
+        """Semantic similarity search — only available with MEMORY_BACKEND=vector."""
+        if not hasattr(self._backend, "search"):
+            return MCPResult.fail(
+                "search() requires MEMORY_BACKEND=vector (ChromaDB). "
+                f"Current backend: {type(self._backend).__name__}"
+            )
+        return self._backend.search(query, namespace=namespace, top_k=top_k)
 
     def health_check(self) -> MCPResult:
-        try:
-            with self._connect() as conn:
-                conn.execute("SELECT 1").fetchone()
-            return MCPResult.ok(data={"mcp": "memory", "backend": "sqlite", "db": self.db_path})
-        except Exception as exc:
-            return MCPResult.fail(str(exc))
+        result = self._backend.health_check()
+        if result.success and isinstance(result.data, dict):
+            result.data["mcp"] = "memory"
+        return result
 
 
 # ── Module-level singleton ────────────────────────────────────────────────────
@@ -144,9 +66,29 @@ class MemoryMCP(BaseMCP):
 _instance: Optional[MemoryMCP] = None
 
 
+def _create_backend() -> BaseMemoryBackend:
+    backend_type = config.MEMORY_BACKEND.lower()
+    if backend_type == "postgres":
+        from mcp.backends.memory.postgres import PostgresMemoryBackend
+        if not config.MEMORY_POSTGRES_DSN:
+            raise ValueError("MEMORY_BACKEND=postgres requires MEMORY_POSTGRES_DSN to be set.")
+        logger.info("Memory backend: PostgreSQL")
+        return PostgresMemoryBackend(dsn=config.MEMORY_POSTGRES_DSN)
+    if backend_type == "vector":
+        from mcp.backends.memory.vector import VectorMemoryBackend
+        logger.info("Memory backend: ChromaDB (vector)")
+        return VectorMemoryBackend(
+            path=config.MEMORY_VECTOR_PATH,
+            collection_name=config.MEMORY_VECTOR_COLLECTION,
+        )
+    logger.info("Memory backend: SQLite")
+    from mcp.backends.memory.sqlite import SQLiteMemoryBackend
+    return SQLiteMemoryBackend(db_path=config.MEMORY_DB_PATH)
+
+
 def get_memory_mcp() -> MemoryMCP:
     """Return the process-wide MemoryMCP singleton, creating it on first call."""
     global _instance
     if _instance is None:
-        _instance = MemoryMCP(db_path=config.MEMORY_DB_PATH)
+        _instance = MemoryMCP(_create_backend())
     return _instance
