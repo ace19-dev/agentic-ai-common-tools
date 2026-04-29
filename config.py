@@ -31,12 +31,7 @@ DATA_DIR.mkdir(exist_ok=True)
 AUTH_DB_PATH: str = os.getenv("AUTH_DB_PATH", str(DATA_DIR / "auth.db"))
 
 # ── Memory MCP backend ──────────────────────────────────────────────────────────
-# Options: sqlite (default) | postgres | vector
-MEMORY_BACKEND: str = os.getenv("MEMORY_BACKEND", "sqlite")
 MEMORY_DB_PATH: str = os.getenv("MEMORY_DB_PATH", str(DATA_DIR / "memory.db"))
-MEMORY_POSTGRES_DSN: str = os.getenv("MEMORY_POSTGRES_DSN", "")
-MEMORY_VECTOR_PATH: str = os.getenv("MEMORY_VECTOR_PATH", str(DATA_DIR / "vector_memory"))
-MEMORY_VECTOR_COLLECTION: str = os.getenv("MEMORY_VECTOR_COLLECTION", "agent_memory")
 
 # ── Retrieval MCP backend ───────────────────────────────────────────────────────
 # Options: tfidf_sqlite (default) | vector | postgres

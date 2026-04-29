@@ -1,13 +1,7 @@
 """
-Memory MCP — persistent key-value store with pluggable backends.
+Memory MCP — persistent key-value store backed by SQLite.
 
-Backend is selected via the MEMORY_BACKEND environment variable:
-  sqlite   (default) — zero-config, file-backed SQLite store
-  postgres           — PostgreSQL; requires MEMORY_POSTGRES_DSN
-  vector             — ChromaDB; adds semantic search via memory_search tool
-
-The public API (set/get/delete/list_keys) is identical across all backends.
-The vector backend additionally exposes search() for similarity queries.
+Supports namespaces for logical isolation and optional TTL-based expiry.
 """
 from __future__ import annotations
 
@@ -22,11 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class MemoryMCP(BaseMCP):
-    """Persistent key-value memory store. Delegates all operations to a backend.
-
-    Supports namespaces for logical isolation and optional TTL-based expiry.
-    The concrete backend is chosen at construction time via MEMORY_BACKEND env var.
-    """
+    """Persistent key-value memory store. Delegates all operations to SQLiteMemoryBackend."""
 
     def __init__(self, backend: BaseMemoryBackend):
         self._backend = backend
@@ -45,15 +35,6 @@ class MemoryMCP(BaseMCP):
     def list_keys(self, namespace: str = "default") -> MCPResult:
         return self._backend.list_keys(namespace=namespace)
 
-    def search(self, query: str, namespace: str = "default", top_k: int = 5) -> MCPResult:
-        """Semantic similarity search — only available with MEMORY_BACKEND=vector."""
-        if not hasattr(self._backend, "search"):
-            return MCPResult.fail(
-                "search() requires MEMORY_BACKEND=vector (ChromaDB). "
-                f"Current backend: {type(self._backend).__name__}"
-            )
-        return self._backend.search(query, namespace=namespace, top_k=top_k)
-
     def health_check(self) -> MCPResult:
         result = self._backend.health_check()
         if result.success and isinstance(result.data, dict):
@@ -66,29 +47,11 @@ class MemoryMCP(BaseMCP):
 _instance: Optional[MemoryMCP] = None
 
 
-def _create_backend() -> BaseMemoryBackend:
-    backend_type = config.MEMORY_BACKEND.lower()
-    if backend_type == "postgres":
-        from mcp.backends.memory.postgres import PostgresMemoryBackend
-        if not config.MEMORY_POSTGRES_DSN:
-            raise ValueError("MEMORY_BACKEND=postgres requires MEMORY_POSTGRES_DSN to be set.")
-        logger.info("Memory backend: PostgreSQL")
-        return PostgresMemoryBackend(dsn=config.MEMORY_POSTGRES_DSN)
-    if backend_type == "vector":
-        from mcp.backends.memory.vector import VectorMemoryBackend
-        logger.info("Memory backend: ChromaDB (vector)")
-        return VectorMemoryBackend(
-            path=config.MEMORY_VECTOR_PATH,
-            collection_name=config.MEMORY_VECTOR_COLLECTION,
-        )
-    logger.info("Memory backend: SQLite")
-    from mcp.backends.memory.sqlite import SQLiteMemoryBackend
-    return SQLiteMemoryBackend(db_path=config.MEMORY_DB_PATH)
-
-
 def get_memory_mcp() -> MemoryMCP:
     """Return the process-wide MemoryMCP singleton, creating it on first call."""
     global _instance
     if _instance is None:
-        _instance = MemoryMCP(_create_backend())
+        from mcp.backends.memory.sqlite import SQLiteMemoryBackend
+        logger.info("Memory backend: SQLite (%s)", config.MEMORY_DB_PATH)
+        _instance = MemoryMCP(SQLiteMemoryBackend(db_path=config.MEMORY_DB_PATH))
     return _instance

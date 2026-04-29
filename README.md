@@ -18,7 +18,7 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 26개 도메인-독립 tool |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 25개 도메인-독립 tool |
 | **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 6개 MCP 클래스 (플러그인 백엔드) |
 
 ---
@@ -53,15 +53,7 @@ START
 
 ### Memory Tools
 
-`MemoryMCP` — 플러그인 가능한 영속 KV 스토어 (네임스페이스 + TTL 지원)
-
-`MEMORY_BACKEND` 환경 변수로 백엔드를 선택합니다.
-
-| 백엔드 | 값 | 특징 | 추가 설치 |
-|--------|---|------|-----------|
-| **SQLite** | `sqlite` _(기본값)_ | 제로 설정, 파일 기반 | — |
-| **PostgreSQL** | `postgres` | 운영 환경용 관계형 KV 스토어 | `psycopg2-binary` |
-| **Vector (ChromaDB)** | `vector` | `memory_search` 시맨틱 검색 지원 | `chromadb` |
+`MemoryMCP` — SQLite 기반 영속 KV 스토어 (네임스페이스 + TTL 지원)
 
 | Tool | 설명 | 주요 파라미터 |
 |------|------|--------------|
@@ -69,7 +61,6 @@ START
 | `memory_set` | 값 저장 (TTL 선택) | `key`, `value`, `namespace`, `ttl=0` |
 | `memory_delete` | 키 삭제 | `key`, `namespace` |
 | `memory_list_keys` | 네임스페이스 내 전체 키 목록 | `namespace="default"` |
-| `memory_search` | 시맨틱 유사도 검색 _(vector 전용)_ | `query`, `namespace`, `top_k=5` |
 
 ---
 
@@ -467,7 +458,7 @@ agentic_ai_project/
 │   └── base_mcp.py             # BaseMCP 추상 클래스 + MCPResult 데이터클래스
 │
 ├── mcp/                        # MCP 퍼사드 — 백엔드에 위임
-│   ├── memory.py               # KV 스토어 (백엔드 선택: MEMORY_BACKEND)
+│   ├── memory.py               # KV 스토어 (SQLite)
 │   ├── retrieval.py            # 문서 검색 (백엔드 선택: RETRIEVAL_BACKEND)
 │   ├── http.py                 # HTTP 클라이언트 (retry + backoff)
 │   ├── scheduler.py            # 잡 스케줄러 (백엔드 선택: SCHEDULER_BACKEND)
@@ -476,9 +467,7 @@ agentic_ai_project/
 │   └── backends/               # 플러그인 백엔드 구현체
 │       ├── memory/
 │       │   ├── base.py         # BaseMemoryBackend ABC
-│       │   ├── sqlite.py       # SQLite (기본값)
-│       │   ├── postgres.py     # PostgreSQL
-│       │   └── vector.py       # ChromaDB + semantic search()
+│       │   └── sqlite.py       # SQLite
 │       ├── retrieval/
 │       │   ├── base.py         # BaseRetrievalBackend ABC
 │       │   ├── chunker.py      # TextChunker + clean_html_text 유틸리티
@@ -490,8 +479,8 @@ agentic_ai_project/
 │           ├── apscheduler.py  # APScheduler + SQLite (기본값)
 │           └── celery.py       # Celery + Redis/RabbitMQ
 │
-├── tools/                      # LangChain @tool 래퍼 (26개 tool)
-│   ├── memory_tools.py         # 5 tools (memory_search 추가)
+├── tools/                      # LangChain @tool 래퍼 (25개 tool)
+│   ├── memory_tools.py         # 4 tools
 │   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
 │   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
 │   ├── http_tools.py           # 2 tools
@@ -526,11 +515,10 @@ agentic_ai_project/
 │   └── flight_monitor_workflow.svg
 │
 └── data/                       # 런타임 생성
-    ├── memory.db               # MEMORY_BACKEND=sqlite
+    ├── memory.db               # MemoryMCP (SQLite)
     ├── retrieval.db            # RETRIEVAL_BACKEND=tfidf_sqlite
     ├── scheduler.db            # SCHEDULER_BACKEND=apscheduler
     ├── auth.db
-    ├── vector_memory/          # MEMORY_BACKEND=vector (ChromaDB)
     └── vector_retrieval/       # RETRIEVAL_BACKEND=vector (ChromaDB)
 ```
 
@@ -555,10 +543,10 @@ cp .env.example .env
 ### 3. (선택) 다른 백엔드 설치
 
 ```bash
-# PostgreSQL 백엔드 (Memory 또는 Retrieval)
+# PostgreSQL 백엔드 (Retrieval)
 pip install psycopg2-binary
 
-# Vector 백엔드 — ChromaDB (Memory 또는 Retrieval)
+# Vector 백엔드 — ChromaDB (Retrieval)
 pip install chromadb
 
 # Celery 백엔드 (Scheduler)
@@ -571,11 +559,6 @@ pip install beautifulsoup4
 `.env`에서 백엔드를 선택합니다:
 
 ```bash
-# Memory 백엔드
-MEMORY_BACKEND=sqlite        # 기본값 — 제로 설정
-MEMORY_BACKEND=postgres      # PostgreSQL; MEMORY_POSTGRES_DSN 필요
-MEMORY_BACKEND=vector        # ChromaDB; memory_search 툴 활성화
-
 # Retrieval 백엔드
 RETRIEVAL_BACKEND=tfidf_sqlite  # 기본값 — TF-IDF 코사인 유사도
 RETRIEVAL_BACKEND=vector        # ChromaDB 임베딩 시맨틱 검색
@@ -611,7 +594,7 @@ python main.py --example monitoring
 
 **도메인 독립성**: 모든 MCP와 Tool은 특정 도메인 로직 없이 구현되어 있습니다. 고객 지원, 연구, 모니터링, 금융, 의료 등 어떤 도메인에서도 동일한 Tool을 재사용할 수 있습니다.
 
-**플러그인 백엔드**: Memory, Retrieval, Scheduler는 환경 변수 하나로 백엔드를 교체합니다. `BaseMemoryBackend` / `BaseRetrievalBackend` / `BaseSchedulerBackend` ABC를 구현하면 새로운 백엔드를 추가할 수 있습니다. 에이전트 코드와 Tool 코드는 변경 없이 그대로 사용합니다.
+**플러그인 백엔드**: Retrieval, Scheduler는 환경 변수 하나로 백엔드를 교체합니다. `BaseRetrievalBackend` / `BaseSchedulerBackend` ABC를 구현하면 새로운 백엔드를 추가할 수 있습니다. 에이전트 코드와 Tool 코드는 변경 없이 그대로 사용합니다.
 
 **단방향 의존성**: `Tool → MCP → Backend → DB/Service` 방향으로만 의존합니다. 에이전트는 Tool만 알고, MCP 구현과 백엔드는 교체 가능합니다.
 

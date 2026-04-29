@@ -9,10 +9,8 @@ from core.base_mcp import MCPResult
 class BaseMemoryBackend(ABC):
     """Abstract interface that every memory backend must implement.
 
-    Concrete implementations:
-      SQLiteMemoryBackend   — default, zero-config, file-backed
-      PostgresMemoryBackend — production relational store
-      VectorMemoryBackend   — ChromaDB; adds semantic search()
+    Concrete implementation:
+      SQLiteMemoryBackend — default, zero-config, file-backed
     """
 
     @abstractmethod

@@ -1,6 +1,6 @@
-<svg width="860" height="520" viewBox="0 0 860 520" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+<svg width="860" height="590" viewBox="0 0 860 590" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
   <!-- Background -->
-  <rect width="860" height="520" fill="#0f172a"/>
+  <rect width="860" height="590" fill="#0f172a"/>
   <!-- Title -->
   <text x="430" y="38" text-anchor="middle" fill="#f1f5f9" font-size="18" font-weight="bold">Tool ↔ MCP Mapping</text>
   <text x="430" y="58" text-anchor="middle" fill="#64748b" font-size="11">Each @tool is a thin LangChain wrapper over a domain-agnostic MCP backend</text>
@@ -12,17 +12,17 @@
   <text x="570" y="96" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">MCP Class</text>
   <text x="740" y="96" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">Backend</text>
   <!-- Dividers -->
-  <line x1="168" y1="72" x2="168" y2="490" stroke="#1e293b" stroke-width="2"/>
-  <line x1="450" y1="72" x2="450" y2="490" stroke="#1e293b" stroke-width="2"/>
-  <line x1="672" y1="72" x2="672" y2="490" stroke="#1e293b" stroke-width="2"/>
+  <line x1="168" y1="72" x2="168" y2="542" stroke="#1e293b" stroke-width="2"/>
+  <line x1="450" y1="72" x2="450" y2="542" stroke="#1e293b" stroke-width="2"/>
+  <line x1="672" y1="72" x2="672" y2="542" stroke="#1e293b" stroke-width="2"/>
 
   <!-- Row 1 — Memory -->
   <rect x="30" y="108" width="800" height="62" rx="0" fill="#1a1a2e"/>
   <rect x="30" y="108" width="5" height="62" fill="#6366f1"/>
   <text x="95" y="130" text-anchor="middle" fill="#c7d2fe" font-size="12" font-weight="bold">Memory</text>
   <text x="95" y="148" text-anchor="middle" fill="#818cf8" font-size="9">Persistent KV store</text>
-  <text x="310" y="126" text-anchor="middle" fill="#e2e8f0" font-size="10">memory_get  ·  memory_set</text>
-  <text x="310" y="143" text-anchor="middle" fill="#e2e8f0" font-size="10">memory_delete  ·  memory_list_keys</text>
+  <text x="310" y="130" text-anchor="middle" fill="#e2e8f0" font-size="10">memory_get  ·  memory_set</text>
+  <text x="310" y="147" text-anchor="middle" fill="#e2e8f0" font-size="10">memory_delete  ·  memory_list_keys</text>
   <text x="310" y="161" text-anchor="middle" fill="#64748b" font-size="9">4 tools  |  namespace + TTL support</text>
   <text x="570" y="136" text-anchor="middle" fill="#93c5fd" font-size="11">MemoryMCP</text>
   <text x="570" y="155" text-anchor="middle" fill="#475569" font-size="9">mcp/memory.py</text>
@@ -33,67 +33,82 @@
   <rect x="30" y="170" width="800" height="62" rx="0" fill="#0f1f2e"/>
   <rect x="30" y="170" width="5" height="62" fill="#06b6d4"/>
   <text x="95" y="192" text-anchor="middle" fill="#a5f3fc" font-size="12" font-weight="bold">Retrieval</text>
-  <text x="95" y="210" text-anchor="middle" fill="#67e8f9" font-size="9">Semantic document search</text>
-  <text x="310" y="188" text-anchor="middle" fill="#e2e8f0" font-size="10">retrieval_search  ·  retrieval_index</text>
-  <text x="310" y="205" text-anchor="middle" fill="#e2e8f0" font-size="10">retrieval_delete</text>
-  <text x="310" y="223" text-anchor="middle" fill="#64748b" font-size="9">3 tools  |  cosine similarity scoring</text>
+  <text x="95" y="210" text-anchor="middle" fill="#67e8f9" font-size="9">RAG document search</text>
+  <text x="310" y="188" text-anchor="middle" fill="#e2e8f0" font-size="10">retrieval_index  ·  retrieval_search  ·  retrieval_delete</text>
+  <text x="310" y="205" text-anchor="middle" fill="#e2e8f0" font-size="10">retrieval_build_context  ·  retrieval_delete_chunks</text>
+  <text x="310" y="223" text-anchor="middle" fill="#64748b" font-size="9">5 tools  |  chunking + cosine similarity + RAG context</text>
   <text x="570" y="198" text-anchor="middle" fill="#93c5fd" font-size="11">RetrievalMCP</text>
   <text x="570" y="217" text-anchor="middle" fill="#475569" font-size="9">mcp/retrieval.py</text>
-  <text x="740" y="192" text-anchor="middle" fill="#7dd3fc" font-size="10">TF-IDF + SQLite</text>
-  <text x="740" y="208" text-anchor="middle" fill="#475569" font-size="9">scikit-learn</text>
+  <text x="740" y="184" text-anchor="middle" fill="#7dd3fc" font-size="9">tfidf_sqlite · vector · postgres</text>
+  <text x="740" y="199" text-anchor="middle" fill="#94a3b8" font-size="8">(TF-IDF+SQLite · ChromaDB · PG)</text>
+  <text x="740" y="214" text-anchor="middle" fill="#64748b" font-size="8">→ RETRIEVAL_BACKEND</text>
 
-  <!-- Row 3 — HTTP -->
+  <!-- Row 3 — Crawl (NEW) -->
   <rect x="30" y="232" width="800" height="62" rx="0" fill="#1a1a2e"/>
-  <rect x="30" y="232" width="5" height="62" fill="#f59e0b"/>
-  <text x="95" y="254" text-anchor="middle" fill="#fde68a" font-size="12" font-weight="bold">HTTP</text>
-  <text x="95" y="272" text-anchor="middle" fill="#fcd34d" font-size="9">External API calls</text>
-  <text x="310" y="254" text-anchor="middle" fill="#e2e8f0" font-size="10">http_get  ·  http_post</text>
-  <text x="310" y="272" text-anchor="middle" fill="#64748b" font-size="9">2 tools  |  retry + backoff + timeout</text>
-  <text x="570" y="260" text-anchor="middle" fill="#93c5fd" font-size="11">HttpMCP</text>
-  <text x="570" y="279" text-anchor="middle" fill="#475569" font-size="9">mcp/http.py</text>
-  <text x="740" y="260" text-anchor="middle" fill="#7dd3fc" font-size="10">requests + urllib3</text>
-  <text x="740" y="276" text-anchor="middle" fill="#475569" font-size="9">Retry adapter</text>
+  <rect x="30" y="232" width="5" height="62" fill="#10b981"/>
+  <text x="95" y="254" text-anchor="middle" fill="#a7f3d0" font-size="12" font-weight="bold">Crawl</text>
+  <text x="95" y="272" text-anchor="middle" fill="#6ee7b7" font-size="9">RAG data collection</text>
+  <text x="310" y="250" text-anchor="middle" fill="#e2e8f0" font-size="10">crawl_and_index  ·  crawl_and_index_urls</text>
+  <text x="310" y="267" text-anchor="middle" fill="#e2e8f0" font-size="10">crawl_sitemap  ·  crawl_recursive</text>
+  <text x="310" y="285" text-anchor="middle" fill="#64748b" font-size="9">4 tools  |  BFS crawler · sitemap parser · BeautifulSoup</text>
+  <text x="570" y="257" text-anchor="middle" fill="#93c5fd" font-size="11">crawl_tools</text>
+  <text x="570" y="276" text-anchor="middle" fill="#475569" font-size="9">tools/crawl_tools.py</text>
+  <text x="740" y="254" text-anchor="middle" fill="#7dd3fc" font-size="10">HTTP + RetrievalMCP</text>
+  <text x="740" y="270" text-anchor="middle" fill="#475569" font-size="8">beautifulsoup4</text>
 
-  <!-- Row 4 — Scheduler -->
+  <!-- Row 4 — HTTP -->
   <rect x="30" y="294" width="800" height="62" rx="0" fill="#0f1f2e"/>
-  <rect x="30" y="294" width="5" height="62" fill="#10b981"/>
-  <text x="95" y="316" text-anchor="middle" fill="#a7f3d0" font-size="12" font-weight="bold">Scheduler</text>
-  <text x="95" y="334" text-anchor="middle" fill="#6ee7b7" font-size="9">Background jobs</text>
-  <text x="310" y="312" text-anchor="middle" fill="#e2e8f0" font-size="10">schedule_create  ·  schedule_list</text>
-  <text x="310" y="329" text-anchor="middle" fill="#e2e8f0" font-size="10">schedule_remove</text>
-  <text x="310" y="347" text-anchor="middle" fill="#64748b" font-size="9">3 tools  |  interval / cron / date triggers</text>
-  <text x="570" y="322" text-anchor="middle" fill="#93c5fd" font-size="11">SchedulerMCP</text>
-  <text x="570" y="341" text-anchor="middle" fill="#475569" font-size="9">mcp/scheduler.py</text>
-  <text x="740" y="316" text-anchor="middle" fill="#7dd3fc" font-size="10">APScheduler</text>
-  <text x="740" y="332" text-anchor="middle" fill="#475569" font-size="9">SQLite job store</text>
+  <rect x="30" y="294" width="5" height="62" fill="#f59e0b"/>
+  <text x="95" y="316" text-anchor="middle" fill="#fde68a" font-size="12" font-weight="bold">HTTP</text>
+  <text x="95" y="334" text-anchor="middle" fill="#fcd34d" font-size="9">External API calls</text>
+  <text x="310" y="316" text-anchor="middle" fill="#e2e8f0" font-size="10">http_get  ·  http_post</text>
+  <text x="310" y="334" text-anchor="middle" fill="#64748b" font-size="9">2 tools  |  retry + backoff + timeout</text>
+  <text x="570" y="322" text-anchor="middle" fill="#93c5fd" font-size="11">HttpMCP</text>
+  <text x="570" y="341" text-anchor="middle" fill="#475569" font-size="9">mcp/http.py</text>
+  <text x="740" y="322" text-anchor="middle" fill="#7dd3fc" font-size="10">requests + urllib3</text>
+  <text x="740" y="338" text-anchor="middle" fill="#475569" font-size="9">Retry adapter</text>
 
-  <!-- Row 5 — Notification -->
+  <!-- Row 5 — Scheduler -->
   <rect x="30" y="356" width="800" height="62" rx="0" fill="#1a1a2e"/>
-  <rect x="30" y="356" width="5" height="62" fill="#ec4899"/>
-  <text x="95" y="378" text-anchor="middle" fill="#fbcfe8" font-size="12" font-weight="bold">Notification</text>
-  <text x="95" y="396" text-anchor="middle" fill="#f9a8d4" font-size="9">Alerts &amp; reports</text>
-  <text x="310" y="374" text-anchor="middle" fill="#e2e8f0" font-size="10">notify_email  ·  notify_slack</text>
-  <text x="310" y="391" text-anchor="middle" fill="#e2e8f0" font-size="10">notify_console</text>
-  <text x="310" y="409" text-anchor="middle" fill="#64748b" font-size="9">3 tools  |  dry-run mode for safe testing</text>
-  <text x="570" y="384" text-anchor="middle" fill="#93c5fd" font-size="11">NotificationMCP</text>
-  <text x="570" y="403" text-anchor="middle" fill="#475569" font-size="9">mcp/notification.py</text>
-  <text x="740" y="378" text-anchor="middle" fill="#7dd3fc" font-size="10">SMTP + Slack</text>
-  <text x="740" y="394" text-anchor="middle" fill="#475569" font-size="9">webhook / console</text>
+  <rect x="30" y="356" width="5" height="62" fill="#a78bfa"/>
+  <text x="95" y="378" text-anchor="middle" fill="#ddd6fe" font-size="12" font-weight="bold">Scheduler</text>
+  <text x="95" y="396" text-anchor="middle" fill="#c4b5fd" font-size="9">Background jobs</text>
+  <text x="310" y="374" text-anchor="middle" fill="#e2e8f0" font-size="10">schedule_create  ·  schedule_list</text>
+  <text x="310" y="391" text-anchor="middle" fill="#e2e8f0" font-size="10">schedule_remove</text>
+  <text x="310" y="409" text-anchor="middle" fill="#64748b" font-size="9">3 tools  |  interval / cron / date triggers</text>
+  <text x="570" y="384" text-anchor="middle" fill="#93c5fd" font-size="11">SchedulerMCP</text>
+  <text x="570" y="403" text-anchor="middle" fill="#475569" font-size="9">mcp/scheduler.py</text>
+  <text x="740" y="372" text-anchor="middle" fill="#7dd3fc" font-size="9">apscheduler · celery</text>
+  <text x="740" y="387" text-anchor="middle" fill="#94a3b8" font-size="8">(APScheduler · Celery+Redis)</text>
+  <text x="740" y="402" text-anchor="middle" fill="#64748b" font-size="8">→ SCHEDULER_BACKEND</text>
 
-  <!-- Row 6 — Auth -->
+  <!-- Row 6 — Notification -->
   <rect x="30" y="418" width="800" height="62" rx="0" fill="#0f1f2e"/>
-  <rect x="30" y="418" width="5" height="62" fill="#f97316"/>
-  <text x="95" y="440" text-anchor="middle" fill="#fed7aa" font-size="12" font-weight="bold">Auth</text>
-  <text x="95" y="458" text-anchor="middle" fill="#fdba74" font-size="9">Credential vault</text>
-  <text x="310" y="436" text-anchor="middle" fill="#e2e8f0" font-size="10">auth_store_key  ·  auth_get_key</text>
-  <text x="310" y="453" text-anchor="middle" fill="#e2e8f0" font-size="10">auth_validate  ·  auth_revoke</text>
-  <text x="310" y="471" text-anchor="middle" fill="#64748b" font-size="9">4 tools  |  Fernet AES-128 encryption</text>
-  <text x="570" y="446" text-anchor="middle" fill="#93c5fd" font-size="11">AuthMCP</text>
-  <text x="570" y="465" text-anchor="middle" fill="#475569" font-size="9">mcp/auth.py</text>
-  <text x="740" y="440" text-anchor="middle" fill="#7dd3fc" font-size="10">Fernet + SQLite</text>
-  <text x="740" y="456" text-anchor="middle" fill="#475569" font-size="9">cryptography lib</text>
+  <rect x="30" y="418" width="5" height="62" fill="#ec4899"/>
+  <text x="95" y="440" text-anchor="middle" fill="#fbcfe8" font-size="12" font-weight="bold">Notification</text>
+  <text x="95" y="458" text-anchor="middle" fill="#f9a8d4" font-size="9">Alerts &amp; reports</text>
+  <text x="310" y="436" text-anchor="middle" fill="#e2e8f0" font-size="10">notify_email  ·  notify_slack</text>
+  <text x="310" y="453" text-anchor="middle" fill="#e2e8f0" font-size="10">notify_console</text>
+  <text x="310" y="471" text-anchor="middle" fill="#64748b" font-size="9">3 tools  |  dry-run mode for safe testing</text>
+  <text x="570" y="446" text-anchor="middle" fill="#93c5fd" font-size="11">NotificationMCP</text>
+  <text x="570" y="465" text-anchor="middle" fill="#475569" font-size="9">mcp/notification.py</text>
+  <text x="740" y="440" text-anchor="middle" fill="#7dd3fc" font-size="10">SMTP + Slack</text>
+  <text x="740" y="456" text-anchor="middle" fill="#475569" font-size="9">webhook / console</text>
+
+  <!-- Row 7 — Auth -->
+  <rect x="30" y="480" width="800" height="62" rx="0" fill="#1a1a2e"/>
+  <rect x="30" y="480" width="5" height="62" fill="#f97316"/>
+  <text x="95" y="502" text-anchor="middle" fill="#fed7aa" font-size="12" font-weight="bold">Auth</text>
+  <text x="95" y="520" text-anchor="middle" fill="#fdba74" font-size="9">Credential vault</text>
+  <text x="310" y="498" text-anchor="middle" fill="#e2e8f0" font-size="10">auth_store_key  ·  auth_get_key</text>
+  <text x="310" y="515" text-anchor="middle" fill="#e2e8f0" font-size="10">auth_validate  ·  auth_revoke</text>
+  <text x="310" y="533" text-anchor="middle" fill="#64748b" font-size="9">4 tools  |  Fernet AES-128 encryption</text>
+  <text x="570" y="508" text-anchor="middle" fill="#93c5fd" font-size="11">AuthMCP</text>
+  <text x="570" y="527" text-anchor="middle" fill="#475569" font-size="9">mcp/auth.py</text>
+  <text x="740" y="502" text-anchor="middle" fill="#7dd3fc" font-size="10">Fernet + SQLite</text>
+  <text x="740" y="518" text-anchor="middle" fill="#475569" font-size="9">cryptography lib</text>
 
   <!-- Bottom border -->
-  <rect x="30" y="480" width="800" height="30" rx="0" fill="#1e293b"/>
-  <text x="430" y="500" text-anchor="middle" fill="#475569" font-size="9">Total: 19 tools  ·  6 MCPs  ·  domain-agnostic  ·  composable across any multi-agent workflow</text>
+  <rect x="30" y="542" width="800" height="34" rx="0" fill="#1e293b"/>
+  <text x="430" y="563" text-anchor="middle" fill="#475569" font-size="9">Total: 25 tools  ·  6 MCPs  ·  domain-agnostic  ·  composable across any multi-agent workflow</text>
 </svg>

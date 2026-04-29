@@ -1,6 +1,6 @@
-<svg width="900" height="620" viewBox="0 0 900 620" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+<svg width="900" height="640" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
   <!-- Background -->
-  <rect width="900" height="620" fill="#0f172a"/>
+  <rect width="900" height="640" fill="#0f172a"/>
 
   <!-- Title -->
   <text x="450" y="42" text-anchor="middle" fill="#f1f5f9" font-size="20" font-weight="bold">Multi-Agent Architecture Overview</text>
@@ -52,84 +52,104 @@
   <line x1="450" y1="293" x2="450" y2="318" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 3: Tool Layer ───────────────────────────────── -->
-  <rect x="60" y="318" width="780" height="95" rx="12" fill="#1c1917" stroke="#44403c" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="450" y="338" text-anchor="middle" fill="#a8a29e" font-size="10" font-weight="bold">TOOL LAYER  (LangChain @tool wrappers)</text>
+  <rect x="60" y="318" width="780" height="100" rx="12" fill="#1c1917" stroke="#44403c" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="450" y="338" text-anchor="middle" fill="#a8a29e" font-size="10" font-weight="bold">TOOL LAYER  (LangChain @tool wrappers — 25 tools total)</text>
 
-  <!-- Tool boxes -->
-  <rect x="80" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="132" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Memory</text>
-  <text x="132" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">get/set/delete/list</text>
-  <text x="132" y="391" text-anchor="middle" fill="#78716c" font-size="8">4 tools</text>
+  <!-- Tool boxes: 7 boxes, width=97, gap=10 -->
+  <!-- Memory (5 tools) -->
+  <rect x="80" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="128" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Memory</text>
+  <text x="128" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">get/set/delete</text>
+  <text x="128" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">list_keys</text>
+  <text x="128" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
 
-  <rect x="197" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="249" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Retrieval</text>
-  <text x="249" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">search/index/delete</text>
-  <text x="249" y="391" text-anchor="middle" fill="#78716c" font-size="8">3 tools</text>
+  <!-- Retrieval (5 tools) -->
+  <rect x="187" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="235" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Retrieval</text>
+  <text x="235" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">index/search/delete</text>
+  <text x="235" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">build_context</text>
+  <text x="235" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">5 tools</text>
 
-  <rect x="314" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="366" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">HTTP</text>
-  <text x="366" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">get/post</text>
-  <text x="366" y="391" text-anchor="middle" fill="#78716c" font-size="8">2 tools</text>
+  <!-- Crawl (4 tools) -->
+  <rect x="294" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="342" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Crawl</text>
+  <text x="342" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">crawl/sitemap</text>
+  <text x="342" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">recursive</text>
+  <text x="342" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
 
-  <rect x="431" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="483" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Scheduler</text>
-  <text x="483" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">create/list/remove</text>
-  <text x="483" y="391" text-anchor="middle" fill="#78716c" font-size="8">3 tools</text>
+  <!-- HTTP (2 tools) -->
+  <rect x="401" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="449" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">HTTP</text>
+  <text x="449" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">get/post</text>
+  <text x="449" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">retry + backoff</text>
+  <text x="449" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">2 tools</text>
 
-  <rect x="548" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="600" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Notification</text>
-  <text x="600" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">email/slack/console</text>
-  <text x="600" y="391" text-anchor="middle" fill="#78716c" font-size="8">3 tools</text>
+  <!-- Scheduler (3 tools) -->
+  <rect x="508" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="556" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Scheduler</text>
+  <text x="556" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">create/list</text>
+  <text x="556" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">remove</text>
+  <text x="556" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">3 tools</text>
 
-  <rect x="665" y="348" width="105" height="50" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="717" y="367" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Auth</text>
-  <text x="717" y="381" text-anchor="middle" fill="#a8a29e" font-size="8">store/get/validate/revoke</text>
-  <text x="717" y="391" text-anchor="middle" fill="#78716c" font-size="8">4 tools</text>
+  <!-- Notification (3 tools) -->
+  <rect x="615" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="663" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Notification</text>
+  <text x="663" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">email/slack</text>
+  <text x="663" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">console</text>
+  <text x="663" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">3 tools</text>
+
+  <!-- Auth (4 tools) -->
+  <rect x="722" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
+  <text x="770" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Auth</text>
+  <text x="770" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">store/get</text>
+  <text x="770" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">validate/revoke</text>
+  <text x="770" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
 
   <!-- Arrow down to MCP layer -->
-  <line x1="450" y1="413" x2="450" y2="438" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="418" x2="450" y2="443" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 4: MCP Layer ────────────────────────────────── -->
-  <rect x="60" y="438" width="780" height="95" rx="12" fill="#0c1a2e" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="450" y="458" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">MCP LAYER  (Model Context Protocol implementations)</text>
+  <rect x="60" y="443" width="780" height="100" rx="12" fill="#0c1a2e" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="450" y="463" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">MCP LAYER  (Model Context Protocol implementations — pluggable backends)</text>
 
-  <rect x="80" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="132" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">MemoryMCP</text>
-  <text x="132" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">SQLite KV store</text>
-  <text x="132" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">TTL + namespace</text>
+  <rect x="80" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="132" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">MemoryMCP</text>
+  <text x="132" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">SQLite KV store</text>
+  <text x="132" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">TTL + namespace</text>
 
-  <rect x="197" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="249" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">RetrievalMCP</text>
-  <text x="249" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">TF-IDF + SQLite</text>
-  <text x="249" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">cosine similarity</text>
+  <rect x="197" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="249" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">RetrievalMCP</text>
+  <text x="249" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">Pluggable search</text>
+  <text x="249" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">TF-IDF/Vector/Postgres</text>
 
-  <rect x="314" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="366" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">HttpMCP</text>
-  <text x="366" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">requests + Retry</text>
-  <text x="366" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">timeout + backoff</text>
+  <rect x="314" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="366" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">HttpMCP</text>
+  <text x="366" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">requests + Retry</text>
+  <text x="366" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">timeout + backoff</text>
 
-  <rect x="431" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="483" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">SchedulerMCP</text>
-  <text x="483" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">APScheduler</text>
-  <text x="483" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">SQLite persistence</text>
+  <rect x="431" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="483" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">SchedulerMCP</text>
+  <text x="483" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">APScheduler/Celery</text>
+  <text x="483" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">SQLite / Redis broker</text>
 
-  <rect x="548" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="600" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">NotificationMCP</text>
-  <text x="600" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">SMTP + Slack</text>
-  <text x="600" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">webhook + dry-run</text>
+  <rect x="548" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="600" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">NotificationMCP</text>
+  <text x="600" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">SMTP + Slack</text>
+  <text x="600" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">webhook + dry-run</text>
 
-  <rect x="665" y="468" width="105" height="50" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="717" y="487" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">AuthMCP</text>
-  <text x="717" y="501" text-anchor="middle" fill="#60a5fa" font-size="8">Fernet encrypt</text>
-  <text x="717" y="511" text-anchor="middle" fill="#3b82f6" font-size="8">SQLite vault</text>
+  <rect x="665" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
+  <text x="717" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">AuthMCP</text>
+  <text x="717" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">Fernet encrypt</text>
+  <text x="717" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">SQLite vault</text>
 
   <!-- Arrow down to backends -->
-  <line x1="450" y1="533" x2="450" y2="558" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="543" x2="450" y2="563" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 5: Backends ─────────────────────────────────── -->
-  <rect x="60" y="558" width="780" height="45" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5"/>
-  <text x="450" y="575" text-anchor="middle" fill="#6b7280" font-size="10" font-weight="bold">EXTERNAL BACKENDS</text>
-  <text x="450" y="592" text-anchor="middle" fill="#4b5563" font-size="9">SQLite files  ·  TF-IDF index (in-memory)  ·  HTTP APIs  ·  APScheduler  ·  SMTP server  ·  Slack webhook  ·  Fernet key vault</text>
+  <rect x="60" y="563" width="780" height="62" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5"/>
+  <text x="450" y="581" text-anchor="middle" fill="#6b7280" font-size="10" font-weight="bold">EXTERNAL BACKENDS</text>
+  <text x="450" y="597" text-anchor="middle" fill="#4b5563" font-size="9">SQLite  ·  PostgreSQL  ·  ChromaDB (vector)  ·  HTTP APIs  ·  APScheduler / Celery  ·  SMTP  ·  Slack webhook</text>
+  <text x="450" y="614" text-anchor="middle" fill="#374151" font-size="8">Memory: SQLite · Postgres · ChromaDB  |  Retrieval: TF-IDF+SQLite · ChromaDB · Postgres  |  Scheduler: APScheduler · Celery</text>
 
   <!-- Arrowhead markers -->
   <defs>
