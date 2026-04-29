@@ -59,6 +59,19 @@ def auth_validate(service: str) -> str:
 
 
 @tool
+def auth_list_services() -> str:
+    """List all service names that have a stored API key.
+
+    Returns the service identifiers only — no plaintext keys are exposed.
+
+    Returns:
+        A JSON array of service name strings, e.g. '["github", "openai"]',
+        or 'ERROR: ...' on failure.
+    """
+    return _mcp.list_services().to_tool_str()
+
+
+@tool
 def auth_revoke(service: str) -> str:
     """Delete the stored API key for a service, preventing future retrieval.
 

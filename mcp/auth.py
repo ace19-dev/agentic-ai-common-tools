@@ -119,6 +119,17 @@ class AuthMCP(BaseMCP):
         result = self.retrieve(service)
         return MCPResult.ok(data=result.success)
 
+    def list_services(self) -> MCPResult:
+        try:
+            with self._connect() as conn:
+                rows = conn.execute(
+                    "SELECT service FROM tokens ORDER BY service"
+                ).fetchall()
+            return MCPResult.ok(data=[row["service"] for row in rows])
+        except Exception as exc:
+            logger.error("auth.list_services failed: %s", exc)
+            return MCPResult.fail(str(exc))
+
     def revoke(self, service: str) -> MCPResult:
         try:
             with self._connect() as conn:

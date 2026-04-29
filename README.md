@@ -18,7 +18,7 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 25개 도메인-독립 tool |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 26개 도메인-독립 tool |
 | **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 6개 MCP 클래스 (플러그인 백엔드) |
 
 ---
@@ -201,7 +201,8 @@ Retrieval/Scheduler와 달리 채널은 **단일 선택이 아닌 동시 구성*
 |------|------|--------------|
 | `auth_store_key` | API 키 암호화 저장 | `service`, `key` |
 | `auth_get_key` | 저장된 키 복호화 조회 | `service` |
-| `auth_validate` | 키 존재 여부 확인 | `service` |
+| `auth_validate` | 키 존재 여부 확인 (평문 노출 없음) | `service` |
+| `auth_list_services` | 저장된 전체 서비스 목록 조회 (평문 노출 없음) | — |
 | `auth_revoke` | 저장된 키 영구 삭제 | `service` |
 
 ---
@@ -497,14 +498,14 @@ agentic_ai_project/
 │           ├── apscheduler.py  # APScheduler + SQLite (기본값)
 │           └── celery.py       # Celery + Redis/RabbitMQ
 │
-├── tools/                      # LangChain @tool 래퍼 (25개 tool)
+├── tools/                      # LangChain @tool 래퍼 (26개 tool)
 │   ├── memory_tools.py         # 4 tools
 │   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
 │   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
 │   ├── http_tools.py           # 2 tools
 │   ├── scheduler_tools.py      # 3 tools
 │   ├── notification_tools.py   # 3 tools
-│   └── auth_tools.py           # 4 tools
+│   └── auth_tools.py           # 5 tools
 │
 ├── agents/
 │   ├── planner.py              # 실행 계획 생성 에이전트
