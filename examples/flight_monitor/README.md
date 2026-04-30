@@ -12,38 +12,115 @@
 
 ## 아키텍처
 
-범용 `Planner → Executor → Reviewer` 워크플로우 대신, 이 예시는 **도메인 특화 LangGraph**를 직접 구성합니다.
-4개의 전문화된 에이전트가 하나의 공유 `ToolNode`를 통해 tool을 실행하며, `FlightState.active_phase` 필드로 어느 에이전트로 복귀할지 결정합니다.
+### 범용 그래프와의 차이
 
-### 4-Agent 구성 (Principle of Least Privilege)
+이 프로젝트에는 두 종류의 LangGraph 그래프가 있습니다.
 
-| 에이전트 | 역할 | 전용 Tool |
-|----------|------|-----------|
-| `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` |
-| `PriceAnalysisAgent` | 가격 vs 임계값 비교, 예약 여부 결정 | `memory_get` + Pydantic Structured Output |
-| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` |
-| `NotificationAgent` | Slack + 이메일 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` |
+| | 범용 그래프 (`graph/workflow.py`) | flight_monitor (`examples/flight_monitor/workflow.py`) |
+|---|---|---|
+| **사용 예시** | customer_support, research, monitoring | flight_monitor 전용 |
+| **구조** | Planner → Executor → Reviewer (루프·피드백) | 4개 전문 에이전트 (조건 분기) |
+| **Reviewer** | 있음 — 품질 검토 후 재실행 가능 | 없음 — 각 에이전트가 단일 역할만 수행 |
+| **분기** | APPROVED / REVISION NEEDED | should_book True / False |
 
-### 그래프 토폴로지 (1 사이클 = 1 모니터링 체크)
+flight_monitor는 "범용 프레임워크를 쓰지 않고 도메인에 맞게 그래프를 직접 설계"한 예시입니다.
+
+---
+
+### 1 사이클 = 1 모니터링 체크
+
+LangGraph 그래프는 **체크 한 번**(START → END)만 담당합니다.
+`run.py`의 Python 루프가 그래프를 반복 호출하며 모니터링을 이어갑니다.
+
+```
+run.py (Python for 루프)
+│
+├── check 1 → app.invoke() → 그래프 실행 → END  →  no deal, sleep
+├── check 2 → app.invoke() → 그래프 실행 → END  →  no deal, sleep
+├── check 3 → app.invoke() → 그래프 실행 → END  →  ✅ BOOKED → break
+│
+└── 그래프는 "지금 싸냐"만 판단, 반복 주기는 모름
+```
+
+이 분리 덕분에 그래프를 독립적으로 테스트하거나 다른 스케줄러(APScheduler 등)로 교체하기 쉽습니다.
+
+---
+
+### 그래프 토폴로지
 
 ```
 START
   │
   ▼
-search ──[tool_calls?]──► tools ──► search
+[search] ──tool_calls?──► [tools] ─┐
+  │  ◄────────────────────────────┘
+  │ (tool_calls 없음)
+  ▼
+[price_analysis]           ← LLM tool 호출 없음. MemoryMCP 직접 읽어 구조화 출력
   │
-  ▼ (done)
-price_analysis                     (Structured Output — tool call 없음)
-  │
-  ├─[should_book=True]──► booking ──[tool_calls?]──► tools ──► booking
-  │                           │
-  │                           ▼ (done)
-  │                   extract_booking_result   (inline 상태 갱신)
-  │                           │
-  └─[should_book=False]──► notification ──[tool_calls?]──► tools ──► notification
-                              │
-                              ▼ (done)
-                             END
+  ├─ should_book=True ──► [booking] ──tool_calls?──► [tools] ─┐
+  │                          │  ◄──────────────────────────────┘
+  │                          │ (tool_calls 없음)
+  │                          ▼
+  │                  [extract_booking]  ← LLM 없음. memory에서 결과 읽어 state 갱신
+  │                          │
+  └─ should_book=False ──►  [notification] ──tool_calls?──► [tools] ─┐
+                                │  ◄────────────────────────────────┘
+                                │ (tool_calls 없음)
+                                ▼
+                               END
+```
+
+**LLM ↔ ToolNode 루프:** 각 에이전트 노드(search, booking, notification)는 LLM이 `tool_calls`를 내보내는 동안 ToolNode와 반복합니다. LLM이 더 이상 tool을 요청하지 않으면 다음 노드로 넘어갑니다.
+
+```
+search 노드 내부 한 사이클 예시:
+  LLM 호출 → AIMessage(tool_calls=[flight_search(...)]) → ToolNode 실행
+           → ToolMessage(검색 결과 JSON)                → LLM 재호출
+           → AIMessage(tool_calls=[memory_set(...)])    → ToolNode 실행
+           → ToolMessage("stored")                     → LLM 재호출
+           → AIMessage("SEARCH_DONE: check=3 ...")      → tool_calls 없음 → 종료
+```
+
+**`active_phase` 라우팅:** ToolNode는 어느 에이전트가 자신을 호출했는지 모릅니다. 각 에이전트가 `FlightState.active_phase`를 자신의 이름으로 설정해두면, ToolNode 완료 후 라우터가 이 값을 보고 원래 에이전트로 돌아갑니다.
+
+---
+
+### 4-Agent 구성 (Principle of Least Privilege)
+
+각 에이전트는 자신의 역할에 필요한 tool만 접근합니다.
+
+| 에이전트 | 역할 | 전용 Tool | LLM 사용 방식 |
+|----------|------|-----------|--------------|
+| `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` | tool 호출 |
+| `PriceAnalysisAgent` | 가격 vs 임계값 비교, 예약 여부 결정 | (없음) | Pydantic Structured Output |
+| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` | tool 호출 |
+| `NotificationAgent` | Slack + 이메일 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` | tool 호출 |
+
+`PriceAnalysisAgent`만 tool을 호출하지 않습니다. MemoryMCP에서 검색 결과를 직접 읽어 `_PriceDecision` 스키마로 구조화된 결과를 반환합니다. tool 호출 없이 의사결정만 하므로 LLM 왕복이 1번으로 끝납니다.
+
+---
+
+### 실행 경로 트레이스
+
+**경로 A — 딜 없음 (most checks):**
+
+```
+① search    : flight_search → 결과 저장 → "SEARCH_DONE: cheapest=$347"
+② analysis  : 메모리 읽기 → should_book=False (347 > 280)
+③ notification: notify_console("no deal") → "NOTIFICATION_SENT: skipped"
+④ END
+```
+
+**경로 B — 딜 발견 (cheap_on_checks 해당 체크):**
+
+```
+① search    : flight_search → 결과 저장 → "SEARCH_DONE: cheapest=$198"
+② analysis  : 메모리 읽기 → should_book=True (198 < 280)
+③ booking   : flight_book → 확인서 저장 → "BOOKING_CONFIRMED: ref=AGNT48271"
+④ extract   : 메모리에서 booking_reference, confirmed_price, booking_url 읽어 state 갱신
+⑤ notification: notify_slack + notify_email → "NOTIFICATION_SENT: booked"
+⑥ END  →  run.py가 booking_confirmed=True 확인 → 루프 종료
 ```
 
 ---
