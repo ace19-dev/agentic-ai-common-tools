@@ -99,6 +99,17 @@ LOGGING_ES_URL: str = os.getenv("LOGGING_ES_URL", "http://localhost:9200")
 LOGGING_ES_INDEX: str = os.getenv("LOGGING_ES_INDEX", "agentic-ai-logs")
 LOGGING_ES_API_KEY: str = os.getenv("LOGGING_ES_API_KEY", "")
 
+# Datadog 백엔드
+LOGGING_DATADOG_API_KEY: str = os.getenv("LOGGING_DATADOG_API_KEY", "")
+LOGGING_DATADOG_APP_KEY: str = os.getenv("LOGGING_DATADOG_APP_KEY", "")
+LOGGING_DATADOG_SITE: str = os.getenv("LOGGING_DATADOG_SITE", "datadoghq.com")
+LOGGING_DATADOG_SERVICE: str = os.getenv("LOGGING_DATADOG_SERVICE", "agentic-ai")
+LOGGING_DATADOG_SOURCE: str = os.getenv("LOGGING_DATADOG_SOURCE", "python")
+
+# PostgreSQL 백엔드
+LOGGING_POSTGRES_DSN: str = os.getenv("LOGGING_POSTGRES_DSN", "")
+LOGGING_POSTGRES_TABLE: str = os.getenv("LOGGING_POSTGRES_TABLE", "agent_logs")
+
 # ── Python root logger ─────────────────────────────────────────────────────────
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 logging.basicConfig(

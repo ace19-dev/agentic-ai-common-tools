@@ -6,9 +6,11 @@ Logging MCP — 구조화 로그 기록 및 조회.
   file          — 회전(rotating) JSON Lines 파일
   loki          — Grafana Loki HTTP Push API
   elasticsearch — Elasticsearch / OpenSearch
+  datadog       — Datadog Logs API
+  postgres      — PostgreSQL (psycopg2-binary 필요)
 
 환경 변수로 백엔드를 선택합니다:
-  LOGGING_BACKEND=sqlite   # sqlite | file | loki | elasticsearch
+  LOGGING_BACKEND=sqlite   # sqlite | file | loki | elasticsearch | datadog | postgres
 """
 from __future__ import annotations
 
@@ -102,6 +104,25 @@ def get_logging_mcp() -> LoggingMCP:
                 url=config.LOGGING_ES_URL,
                 index=config.LOGGING_ES_INDEX,
                 api_key=config.LOGGING_ES_API_KEY,
+            )
+
+        elif backend_name == "datadog":
+            from mcp.backends.logging.datadog import DatadogLoggingBackend
+            logger.info("Logging 백엔드: Datadog (site=%s)", config.LOGGING_DATADOG_SITE)
+            backend = DatadogLoggingBackend(
+                api_key=config.LOGGING_DATADOG_API_KEY,
+                app_key=config.LOGGING_DATADOG_APP_KEY,
+                site=config.LOGGING_DATADOG_SITE,
+                service=config.LOGGING_DATADOG_SERVICE,
+                source=config.LOGGING_DATADOG_SOURCE,
+            )
+
+        elif backend_name == "postgres":
+            from mcp.backends.logging.postgres import PostgresLoggingBackend
+            logger.info("Logging 백엔드: PostgreSQL (table=%s)", config.LOGGING_POSTGRES_TABLE)
+            backend = PostgresLoggingBackend(
+                dsn=config.LOGGING_POSTGRES_DSN,
+                table=config.LOGGING_POSTGRES_TABLE,
             )
 
         else:
