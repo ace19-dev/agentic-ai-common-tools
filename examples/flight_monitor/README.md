@@ -71,8 +71,8 @@ search 노드 내부 한 사이클 예시:
 |----------|------|-----------|--------------|
 | `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` | tool 호출 |
 | `PriceAnalysisAgent` | 가격 vs 임계값 비교, 예약 여부 결정 | (없음) | Pydantic Structured Output |
-| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` | tool 호출 |
-| `NotificationAgent` | Slack + 이메일 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` | tool 호출 |
+| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_get`, `memory_set`, `notify_console` | tool 호출 |
+| `NotificationAgent` | Slack · Discord · Telegram · Teams + 이메일 알림 발송 | `memory_get`, `notify_email`, `notify_slack`, `notify_discord`, `notify_telegram`, `notify_teams`, `notify_console`, `memory_set` | tool 호출 |
 
 `PriceAnalysisAgent`만 tool을 호출하지 않습니다. MemoryMCP에서 검색 결과를 직접 읽어 `_PriceDecision` 스키마로 구조화된 결과를 반환합니다. tool 호출 없이 의사결정만 하므로 LLM 왕복이 1번으로 끝납니다.
 
@@ -278,7 +278,7 @@ python -m examples.flight_monitor.run --mode amadeus --amadeus-key amadeus
 | PriceAnalysisAgent | (tool 없음 — MemoryMCP 직접 호출) | 공통 MCP |
 | BookingAgent | `flight_book` | 시나리오 전용 (FlightMCP) |
 | | `memory_get`, `memory_set`, `notify_console` | 공통 MCP |
-| NotificationAgent | `notify_slack`, `notify_email`, `notify_console`, `memory_set` | 공통 MCP |
+| NotificationAgent | `memory_get`, `notify_email`, `notify_slack`, `notify_discord`, `notify_telegram`, `notify_teams`, `notify_console`, `memory_set` | 공통 MCP |
 
 `flight_search` / `flight_book` 도 내부 구조는 공통 패턴을 따릅니다.
 

@@ -29,7 +29,9 @@ import config
 from examples.flight_monitor.state import FlightState
 from tools.flight_tools import flight_book, flight_search
 from tools.memory_tools import memory_get, memory_set
-from tools.notification_tools import notify_console, notify_email, notify_slack
+from tools.notification_tools import (
+    notify_console, notify_discord, notify_email, notify_slack, notify_teams, notify_telegram,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,10 @@ logger = logging.getLogger(__name__)
 
 SEARCH_TOOLS = [flight_search, memory_set, notify_console]
 BOOKING_TOOLS = [flight_book, memory_get, memory_set, notify_console]
-NOTIFICATION_TOOLS = [memory_get, notify_email, notify_slack, notify_console, memory_set]
+NOTIFICATION_TOOLS = [
+    memory_get, notify_email, notify_slack, notify_discord, notify_telegram, notify_teams,
+    notify_console, memory_set,
+]
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
