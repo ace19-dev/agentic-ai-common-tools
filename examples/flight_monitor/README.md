@@ -6,7 +6,7 @@
 - **mock** (기본값) — 로컬 MockFlightAPI 서버, 설정 없이 즉시 실행
 - **amadeus** — 실제 [Amadeus for Developers](https://developers.amadeus.com) REST API
 
-![Flight Monitor Workflow](../../assets/flight_monitor_workflow.svg)
+![에이전트 실행 흐름](../../assets/agent_execution_flow.svg)
 
 ---
 
@@ -46,9 +46,7 @@ run.py (Python for 루프)
 
 ---
 
-### 에이전트 실행 흐름
 
-![에이전트 실행 흐름](../../assets/agent_execution_flow.svg)
 
 **LLM ↔ ToolNode 루프:** LLM이 응답에 `tool_calls`를 포함하면 ToolNode로 이동하고, ToolNode가 실행 결과를 돌려주면 LLM이 다시 호출됩니다. 이 사이클은 LLM이 `tool_calls` 없이 일반 텍스트만 반환할 때까지 반복됩니다.
 
