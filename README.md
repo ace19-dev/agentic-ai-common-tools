@@ -18,7 +18,7 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 32개 도메인-독립 tool |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 35개 도메인-독립 tool |
 | **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 8개 MCP 클래스 (플러그인 백엔드) |
 
 ---
@@ -451,8 +451,8 @@ MONITORING_TARGETS=https://api.example.com/health python -m examples.monitoring_
 |----------|------|-----------|
 | `SearchAgent` | 항공권 검색, 결과를 memory에 저장 | `flight_search`, `memory_set`, `notify_console` |
 | `PriceAnalysisAgent` | 가격 vs 임계값 비교 후 예약 여부 결정 | `memory_get` + **Pydantic Structured Output** (tool call 없음) |
-| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_set`, `notify_console` |
-| `NotificationAgent` | Slack + 이메일 예약 확인 알림 발송 | `notify_slack`, `notify_email`, `notify_console`, `memory_set` |
+| `BookingAgent` | 예약 실행, 확인서 저장 | `flight_book`, `memory_get`, `memory_set`, `notify_console` |
+| `NotificationAgent` | Slack + 이메일 예약 확인 알림 발송 | `memory_get`, `notify_email`, `notify_slack`, `notify_console`, `memory_set` |
 
 **워크플로우:**
 ```
@@ -587,13 +587,13 @@ agentic_ai_project/
 │           ├── datadog.py      # Datadog Logs API
 │           └── postgres.py     # PostgreSQL (JSONB metadata)
 │
-├── tools/                      # LangChain @tool 래퍼 (32개 tool)
+├── tools/                      # LangChain @tool 래퍼 (35개 tool)
 │   ├── memory_tools.py         # 4 tools
 │   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
 │   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
 │   ├── http_tools.py           # 2 tools
 │   ├── scheduler_tools.py      # 3 tools
-│   ├── notification_tools.py   # 3 tools
+│   ├── notification_tools.py   # 6 tools
 │   ├── auth_tools.py           # 5 tools
 │   ├── logging_tools.py        # 4 tools (write / query / tail / clear)
 │   └── flight_tools.py         # 2 tools (configure_flight_client() 필요)
@@ -706,7 +706,7 @@ python main.py --example monitoring
 
 **도메인 독립성**: 모든 MCP와 Tool은 특정 도메인 로직 없이 구현되어 있습니다. 고객 지원, 연구, 모니터링, 금융, 의료 등 어떤 도메인에서도 동일한 Tool을 재사용할 수 있습니다.
 
-**플러그인 백엔드**: Retrieval, Scheduler는 환경 변수 하나로 백엔드를 교체합니다. `BaseRetrievalBackend` / `BaseSchedulerBackend` ABC를 구현하면 새로운 백엔드를 추가할 수 있습니다. 에이전트 코드와 Tool 코드는 변경 없이 그대로 사용합니다.
+**플러그인 백엔드**: Retrieval, Scheduler, Logging은 환경 변수 하나로 백엔드를 교체합니다. `BaseRetrievalBackend` / `BaseSchedulerBackend` / `BaseLoggingBackend` ABC를 구현하면 새로운 백엔드를 추가할 수 있습니다. 에이전트 코드와 Tool 코드는 변경 없이 그대로 사용합니다.
 
 **단방향 의존성**: `Tool → MCP → Backend → DB/Service` 방향으로만 의존합니다. 에이전트는 Tool만 알고, MCP 구현과 백엔드는 교체 가능합니다.
 

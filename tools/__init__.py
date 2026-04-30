@@ -7,11 +7,13 @@ Grouped by MCP:
   Crawl (4)        — crawl_and_index, crawl_and_index_urls, crawl_sitemap, crawl_recursive
   HTTP (2)         — get, post
   Scheduler (3)    — create, list, remove
-  Notification (3) — email, slack, console
+  Notification (6) — email, slack, discord, telegram, teams, console
   Auth (5)         — store_key, get_key, validate, list_services, revoke
   Logging (4)      — write, query, tail, clear
   Flight (2)       — search, book  (requires configure_flight_client() at startup;
                      NOT included in ALL_TOOLS — add per-agent as needed)
+
+Total: 35 tools (33 in ALL_TOOLS + 2 flight tools added per-agent)
 """
 from .auth_tools import (auth_get_key, auth_list_services, auth_revoke,
                          auth_store_key, auth_validate)
@@ -21,7 +23,8 @@ from .flight_tools import flight_book, flight_search
 from .http_tools import http_get, http_post
 from .logging_tools import log_clear, log_query, log_tail, log_write
 from .memory_tools import memory_delete, memory_get, memory_list_keys, memory_set
-from .notification_tools import notify_console, notify_email, notify_slack
+from .notification_tools import (notify_console, notify_discord, notify_email,
+                                  notify_slack, notify_teams, notify_telegram)
 from .retrieval_tools import (retrieval_build_context, retrieval_delete,
                                retrieval_delete_chunks, retrieval_index, retrieval_search)
 from .scheduler_tools import schedule_create, schedule_list, schedule_remove
@@ -39,7 +42,7 @@ ALL_TOOLS = [
     # Scheduler
     schedule_create, schedule_list, schedule_remove,
     # Notification
-    notify_email, notify_slack, notify_console,
+    notify_email, notify_slack, notify_discord, notify_telegram, notify_teams, notify_console,
     # Auth
     auth_store_key, auth_get_key, auth_validate, auth_list_services, auth_revoke,
     # Logging
@@ -55,7 +58,7 @@ __all__ = [
     "crawl_and_index", "crawl_and_index_urls", "crawl_sitemap", "crawl_recursive",
     "http_get", "http_post",
     "schedule_create", "schedule_list", "schedule_remove",
-    "notify_email", "notify_slack", "notify_console",
+    "notify_email", "notify_slack", "notify_discord", "notify_telegram", "notify_teams", "notify_console",
     "auth_store_key", "auth_get_key", "auth_validate", "auth_list_services", "auth_revoke",
     "log_write", "log_query", "log_tail", "log_clear",
     "flight_search", "flight_book",
