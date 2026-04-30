@@ -2,24 +2,24 @@
 Flight Monitor — LangGraph Workflow
 =====================================
 
-Graph topology (one cycle = one monitoring check):
+Agent execution flow (one graph invocation = one monitoring check):
 
     START
       │
       ▼
-  search ──[tool_calls?]──► tools ──► search
+  search ──LLM이 tool 호출──► tools ──► search
       │
-      ▼ (done)
-  price_analysis                     (structured output — no tool calls)
+      ▼ (LLM이 tool 호출 안 함, 완료)
+  price_analysis                     (structured output — tool 호출 없음)
       │
-      ├─[should_book=True]──► booking ──[tool_calls?]──► tools ──► booking
+      ├─[should_book=True]──► booking ──LLM이 tool 호출──► tools ──► booking
       │                           │
-      │                           ▼ (done)
+      │                           ▼ (LLM이 tool 호출 안 함, 완료)
       │                   extract_booking_result (inline state update)
       │                           │
-      └─[should_book=False]──► notification ──[tool_calls?]──► tools ──► notification
+      └─[should_book=False]──► notification ──LLM이 tool 호출──► tools ──► notification
                                   │
-                                  ▼ (done)
+                                  ▼ (LLM이 tool 호출 안 함, 완료)
                                  END
 
 The `active_phase` field in FlightState tells the shared ToolNode which agent
