@@ -12,7 +12,7 @@
 | [Customer Support](#1-customer_supportpy) | `customer_support.py` | retrieval, memory, notify |
 | [Research Agent](#2-research_agentpy) | `research_agent.py` | http, retrieval, memory, notify |
 | [Monitoring Agent](#3-monitoring_agentpy) | `monitoring_agent.py` | http, memory, notify, scheduler |
-| [Flight Monitor](#4-flight_monitor) | `flight_monitor/` | http, memory, auth, notify (4-에이전트) |
+| [Flight Monitor](#4-flight_monitor) | `flight_monitor/` | flight, memory, notify (4-에이전트) |
 
 ---
 
