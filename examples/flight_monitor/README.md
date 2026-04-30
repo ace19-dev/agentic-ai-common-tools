@@ -46,32 +46,34 @@ run.py (Python for 루프)
 
 ---
 
-### 그래프 토폴로지
+### 에이전트 실행 흐름
+
+LangGraph는 노드(에이전트)와 엣지(연결)로 그래프를 구성합니다. 각 에이전트 노드는 LLM을 호출하고, LLM이 tool을 요청하면 ToolNode로 이동했다가 다시 돌아오는 루프를 반복합니다. LLM이 더 이상 tool을 요청하지 않으면 다음 에이전트로 넘어갑니다.
 
 ```
 START
   │
   ▼
-[search] ──tool_calls?──► [tools] ─┐
-  │  ◄────────────────────────────┘
-  │ (tool_calls 없음)
+[search] ──LLM이 tool 호출──► [tools] ─┐
+  │  ◄──────────── 결과 반환 ──────────┘
+  │ LLM이 tool 호출 안 함 (완료)
   ▼
-[price_analysis]           ← LLM tool 호출 없음. MemoryMCP 직접 읽어 구조화 출력
+[price_analysis]           ← tool 호출 없음. MemoryMCP 직접 읽어 구조화 출력
   │
-  ├─ should_book=True ──► [booking] ──tool_calls?──► [tools] ─┐
-  │                          │  ◄──────────────────────────────┘
-  │                          │ (tool_calls 없음)
+  ├─ should_book=True ──► [booking] ──LLM이 tool 호출──► [tools] ─┐
+  │                          │  ◄──────── 결과 반환 ───────────────┘
+  │                          │ LLM이 tool 호출 안 함 (완료)
   │                          ▼
   │                  [extract_booking]  ← LLM 없음. memory에서 결과 읽어 state 갱신
   │                          │
-  └─ should_book=False ──►  [notification] ──tool_calls?──► [tools] ─┐
-                                │  ◄────────────────────────────────┘
-                                │ (tool_calls 없음)
+  └─ should_book=False ──►  [notification] ──LLM이 tool 호출──► [tools] ─┐
+                                │  ◄──────────── 결과 반환 ───────────────┘
+                                │ LLM이 tool 호출 안 함 (완료)
                                 ▼
                                END
 ```
 
-**LLM ↔ ToolNode 루프:** 각 에이전트 노드(search, booking, notification)는 LLM이 `tool_calls`를 내보내는 동안 ToolNode와 반복합니다. LLM이 더 이상 tool을 요청하지 않으면 다음 노드로 넘어갑니다.
+**LLM ↔ ToolNode 루프:** LLM이 응답에 `tool_calls`를 포함하면 ToolNode로 이동하고, ToolNode가 실행 결과를 돌려주면 LLM이 다시 호출됩니다. 이 사이클은 LLM이 `tool_calls` 없이 일반 텍스트만 반환할 때까지 반복됩니다.
 
 ```
 search 노드 내부 한 사이클 예시:
