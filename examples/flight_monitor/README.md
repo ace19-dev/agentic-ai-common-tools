@@ -213,6 +213,60 @@ python -m examples.flight_monitor.run --mode amadeus --amadeus-key amadeus
 
 ---
 
+## Tool · MCP 조합 구조
+
+이 시나리오의 에이전트들은 **공통 Tool/MCP를 재사용**하고, 항공권 도메인 로직만 별도 Tool로 추가하는 방식으로 구성됩니다.
+
+| 에이전트 | 도구 | 성격 |
+|----------|------|------|
+| SearchAgent | `flight_search` | 시나리오 전용 (FlightMCP) |
+| | `memory_set`, `notify_console` | 공통 MCP |
+| PriceAnalysisAgent | (tool 없음 — MemoryMCP 직접 호출) | 공통 MCP |
+| BookingAgent | `flight_book` | 시나리오 전용 (FlightMCP) |
+| | `memory_get`, `memory_set`, `notify_console` | 공통 MCP |
+| NotificationAgent | `notify_slack`, `notify_email`, `notify_console`, `memory_set` | 공통 MCP |
+
+`flight_search` / `flight_book` 도 내부 구조는 공통 패턴을 따릅니다.
+
+```
+tools/flight_tools.py  →  mcp/flight.py   →  Mock or Amadeus API
+tools/memory_tools.py  →  mcp/memory.py   →  SQLite
+tools/notify_tools.py  →  mcp/notification.py  →  Slack / Email / Console
+```
+
+도메인이 바뀌어도 Memory·Notification·HTTP·Auth MCP는 그대로 재사용하고,
+새 MCP + Tool 하나만 추가하면 새 시나리오를 구성할 수 있습니다.
+
+---
+
+## IATA 코드 조회
+
+`--origin`, `--dest` 옵션에 입력하는 공항 코드는 IATA 3자리 코드입니다.
+
+| 사이트 | 특징 |
+|--------|------|
+| [IATA 공식](https://www.iata.org/en/publications/directories/code-search/) | IATA 공식 코드 검색 |
+| [Our Airports](https://ourairports.com/airports/) | 전 세계 공항 목록, CSV 다운로드 가능 |
+| [FlightConnections](https://www.flightconnections.com/) | 지도 기반 노선 탐색 + 코드 확인 |
+
+자주 쓰는 코드:
+
+| 공항 | 코드 |
+|------|------|
+| 인천국제공항 | `ICN` |
+| 김포공항 | `GMP` |
+| 나리타공항 (도쿄) | `NRT` |
+| 하네다공항 (도쿄) | `HND` |
+| 오사카 간사이 | `KIX` |
+| 방콕 수완나품 | `BKK` |
+| 싱가포르 창이 | `SIN` |
+| 홍콩 | `HKG` |
+| 뉴욕 JFK | `JFK` |
+| 런던 히스로 | `LHR` |
+| 파리 샤를드골 | `CDG` |
+
+---
+
 ## 주요 설계 포인트
 
 ### Flight Client 추상화 (`mcp/flight.py`)
