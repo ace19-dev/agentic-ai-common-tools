@@ -18,8 +18,8 @@
 | Layer | 역할 | 구성 요소 |
 |-------|------|-----------|
 | **Multi-Agent Graph** | LLM 에이전트들이 협력하여 작업 수행 | Planner → Executor → Reviewer |
-| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 28개 도메인-독립 tool |
-| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 7개 MCP 클래스 (플러그인 백엔드) |
+| **Tool Layer** | LLM이 호출 가능한 LangChain `@tool` 래퍼 | 32개 도메인-독립 tool |
+| **MCP Layer** | 실제 백엔드 시스템과 연결되는 구현체 | 8개 MCP 클래스 (플러그인 백엔드) |
 
 ---
 
@@ -204,6 +204,82 @@ Retrieval/Scheduler와 달리 채널은 **단일 선택이 아닌 동시 구성*
 | `auth_validate` | 키 존재 여부 확인 (평문 노출 없음) | `service` |
 | `auth_list_services` | 저장된 전체 서비스 목록 조회 (평문 노출 없음) | — |
 | `auth_revoke` | 저장된 키 영구 삭제 | `service` |
+
+---
+
+### Logging Tools
+
+`LoggingMCP` — 구조화 로그 기록·조회·삭제. 에이전트가 실행 이력을 남기고 추후 분석할 수 있습니다.
+
+`LOGGING_BACKEND` 환경 변수로 백엔드를 선택합니다.
+
+| 백엔드 | 값 | write | query/tail | clear | 추가 설치 |
+|--------|---|:---:|:---:|:---:|-----------|
+| **SQLite** | `sqlite` _(기본값)_ | ✅ | ✅ | ✅ | — |
+| **File (Rotating)** | `file` | ✅ | ✅ (현재 파일) | ✅ | — |
+| **Grafana Loki** | `loki` | ✅ | ✅ (LogQL) | ❌ immutable | — |
+| **Elasticsearch / OpenSearch** | `elasticsearch` | ✅ | ✅ | ✅ | — |
+| **Datadog** | `datadog` | ✅ | ✅ (App key 필요) | ❌ immutable | — |
+| **PostgreSQL** | `postgres` | ✅ | ✅ | ✅ | `psycopg2-binary` |
+
+| Tool | 설명 | 주요 파라미터 |
+|------|------|--------------|
+| `log_write` | 구조화 로그 엔트리 기록 | `level`, `message`, `source=""`, `metadata="{}"` |
+| `log_query` | 조건(레벨·소스·기간)으로 로그 검색 | `level=""`, `source=""`, `since=""`, `until=""`, `limit=50` |
+| `log_tail` | 최신 N개 엔트리 조회 | `n=20`, `source=""` |
+| `log_clear` | 오래된 로그 삭제 | `before=""` (ISO 8601), `source=""` |
+
+각 로그 엔트리는 다음 구조로 반환됩니다:
+```json
+{
+  "id": 42,
+  "timestamp": "2026-04-30T14:30:00.123456+00:00",
+  "level": "INFO",
+  "source": "search_agent",
+  "message": "항공편 검색 완료",
+  "metadata": {"check": 3, "cheapest_price": 198.45}
+}
+```
+
+**백엔드별 설정:**
+
+```bash
+# SQLite (기본값 — 설정 불필요)
+LOGGING_BACKEND=sqlite
+LOGGING_DB_PATH=data/agent_logs.db
+
+# File — 10 MB 회전, 백업 5개
+LOGGING_BACKEND=file
+LOGGING_FILE_PATH=data/agent.log
+LOGGING_FILE_MAX_BYTES=10485760
+LOGGING_FILE_BACKUP_COUNT=5
+
+# Grafana Loki
+LOGGING_BACKEND=loki
+LOGGING_LOKI_URL=http://localhost:3100
+LOGGING_LOKI_LABELS={"app": "agentic-ai", "env": "dev"}
+
+# Elasticsearch / OpenSearch
+LOGGING_BACKEND=elasticsearch
+LOGGING_ES_URL=http://localhost:9200
+LOGGING_ES_INDEX=agentic-ai-logs
+LOGGING_ES_API_KEY=                   # 선택사항
+
+# Datadog
+LOGGING_BACKEND=datadog
+LOGGING_DATADOG_API_KEY=<dd-api-key>
+LOGGING_DATADOG_APP_KEY=<dd-app-key>  # query/tail에 필요
+LOGGING_DATADOG_SITE=datadoghq.com    # 또는 datadoghq.eu / us3 / us5 / ap1
+LOGGING_DATADOG_SERVICE=agentic-ai
+
+# PostgreSQL (metadata 컬럼이 JSONB — 필드 직접 쿼리 가능)
+LOGGING_BACKEND=postgres
+LOGGING_POSTGRES_DSN=postgresql://user:password@localhost:5432/dbname
+LOGGING_POSTGRES_TABLE=agent_logs
+```
+
+> Loki와 Datadog는 로그가 **불변(immutable)** 이므로 `log_clear`를 지원하지 않습니다.  
+> Loki는 retention 정책, Datadog는 콘솔의 Archive 설정으로 데이터를 관리합니다.
 
 ---
 
@@ -485,6 +561,7 @@ agentic_ai_project/
 │   ├── scheduler.py            # 잡 스케줄러 (백엔드 선택: SCHEDULER_BACKEND)
 │   ├── notification.py         # SMTP / Slack / Discord / Telegram / Teams / console
 │   ├── auth.py                 # Fernet 암호화 키 볼트 (SQLite)
+│   ├── logging_mcp.py          # 구조화 로그 (백엔드 선택: LOGGING_BACKEND)
 │   ├── flight.py               # 항공 검색/예약 클라이언트 (Mock / Amadeus)
 │   └── backends/               # 플러그인 백엔드 구현체
 │       ├── memory/
@@ -497,12 +574,20 @@ agentic_ai_project/
 │       │   ├── bm25_sqlite.py  # BM25 + SQLite FTS5 (추가 의존성 없음)
 │       │   ├── vector.py       # ChromaDB 임베딩 검색
 │       │   └── postgres.py     # PostgreSQL tsvector 전문 검색
-│       └── scheduler/
-│           ├── base.py         # BaseSchedulerBackend ABC
-│           ├── apscheduler.py  # APScheduler + SQLite (기본값)
-│           └── celery.py       # Celery + Redis/RabbitMQ
+│       ├── scheduler/
+│       │   ├── base.py         # BaseSchedulerBackend ABC
+│       │   ├── apscheduler.py  # APScheduler + SQLite (기본값)
+│       │   └── celery.py       # Celery + Redis/RabbitMQ
+│       └── logging/
+│           ├── base.py         # BaseLoggingBackend ABC
+│           ├── sqlite.py       # SQLite (기본값)
+│           ├── file.py         # Rotating JSON Lines 파일
+│           ├── loki.py         # Grafana Loki HTTP Push API
+│           ├── elasticsearch.py# Elasticsearch / OpenSearch
+│           ├── datadog.py      # Datadog Logs API
+│           └── postgres.py     # PostgreSQL (JSONB metadata)
 │
-├── tools/                      # LangChain @tool 래퍼 (28개 tool)
+├── tools/                      # LangChain @tool 래퍼 (32개 tool)
 │   ├── memory_tools.py         # 4 tools
 │   ├── retrieval_tools.py      # 5 tools (chunking + RAG 컨텍스트 조립)
 │   ├── crawl_tools.py          # 4 tools (RAG 데이터 수집 파이프라인)
@@ -510,6 +595,7 @@ agentic_ai_project/
 │   ├── scheduler_tools.py      # 3 tools
 │   ├── notification_tools.py   # 3 tools
 │   ├── auth_tools.py           # 5 tools
+│   ├── logging_tools.py        # 4 tools (write / query / tail / clear)
 │   └── flight_tools.py         # 2 tools (configure_flight_client() 필요)
 │
 ├── agents/
