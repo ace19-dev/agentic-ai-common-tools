@@ -1,19 +1,19 @@
 """
-Flight Monitor — Specialized Agent Nodes
-==========================================
+Flight Monitor — 전문 에이전트 노드
+======================================
 
-4 agents with distinct roles, each bound to a restricted tool set:
+각 에이전트는 제한된 tool 세트에 바인딩되어 고유한 역할을 담당합니다:
 
-  SearchAgent        → Calls flight_search, stores results in memory
-  PriceAnalysisAgent → Reads results, decides whether to book (structured output)
-  BookingAgent       → Calls flight_book when price is acceptable
-  NotificationAgent  → Sends Slack/email alerts with outcome
+  SearchAgent        → flight_search 호출, 결과를 메모리에 저장
+  PriceAnalysisAgent → 결과 읽기, 예약 여부 결정 (구조화 출력)
+  BookingAgent       → 가격이 적절하면 flight_book 호출
+  NotificationAgent  → Slack/이메일 알림 발송
 
-In mock mode:  flight_search/flight_book call the local MockFlightAPI server.
-In live mode:  flight_search calls Amadeus; flight_book returns a deal reference
-               + Google Flights deep-link for the user to complete the purchase.
+mock 모드: flight_search/flight_book이 로컬 MockFlightAPI 서버를 호출합니다.
+live 모드: flight_search가 Amadeus를 호출하고, flight_book은 딜 참조번호와
+           Google Flights 딥 링크를 반환해 사용자가 직접 구매를 완료하도록 합니다.
 
-Each node sets `active_phase` so the shared ToolNode knows where to route back.
+각 노드는 공유 ToolNode가 올바른 에이전트로 돌아올 수 있도록 `active_phase`를 설정합니다.
 """
 from __future__ import annotations
 
@@ -33,7 +33,7 @@ from tools.notification_tools import notify_console, notify_email, notify_slack
 
 logger = logging.getLogger(__name__)
 
-# ── Tool sets per agent (principle of least privilege) ────────────────────────
+# ── 에이전트별 tool 세트 (최소 권한 원칙) ─────────────────────────────────────
 
 SEARCH_TOOLS = [flight_search, memory_set, notify_console]
 BOOKING_TOOLS = [flight_book, memory_get, memory_set, notify_console]
@@ -67,10 +67,9 @@ Step 4 — End your response with exactly:
 
 
 def search_node(state: FlightState) -> dict:
-    """Call the flight search tool and store results in memory.
+    """항공편 검색 tool을 호출하고 결과를 메모리에 저장합니다.
 
-    Sets active_phase="search" so the shared ToolNode routes back here
-    after tool calls complete.
+    tool 호출 완료 후 공유 ToolNode가 이 노드로 돌아오도록 active_phase="search"를 설정합니다.
     """
     llm = ChatOpenAI(model=config.LLM_MODEL, temperature=0).bind_tools(SEARCH_TOOLS)
     system = _SEARCH_PROMPT.format(
@@ -84,14 +83,14 @@ def search_node(state: FlightState) -> dict:
     try:
         response = llm.invoke(messages)
     except Exception as exc:
-        logger.error("search_node error: %s", exc)
+        logger.error("search_node 오류: %s", exc)
         response = AIMessage(content=f"SEARCH_DONE: check={state['check_number']} error={exc}")
 
     return {"messages": [response], "active_phase": "search"}
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# 2. Price Analysis Agent  (structured output — no tool calls)
+# 2. Price Analysis Agent  (구조화 출력 — tool 호출 없음)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
@@ -108,11 +107,11 @@ class _PriceDecision(BaseModel):
 
 
 def price_analysis_node(state: FlightState) -> dict:
-    """Decide whether to book based on search results stored in memory.
+    """메모리에 저장된 검색 결과를 바탕으로 예약 여부를 결정합니다.
 
-    Reads directly from the Memory MCP to avoid an extra LLM round-trip.
-    Uses with_structured_output so the decision is always a typed Pydantic
-    object, not free-form text.
+    추가 LLM 왕복을 피하기 위해 Memory MCP에서 직접 읽습니다.
+    with_structured_output을 사용하므로 결정 결과는 항상 타입이 지정된
+    Pydantic 객체로 반환되며 자유 형식 텍스트가 아닙니다.
     """
     from mcp.memory import get_memory_mcp
     mem = get_memory_mcp()
@@ -142,7 +141,7 @@ def price_analysis_node(state: FlightState) -> dict:
     try:
         decision: _PriceDecision = (prompt | llm).invoke({"data": json.dumps(data, indent=2)})
     except Exception as exc:
-        logger.error("price_analysis_node error: %s", exc)
+        logger.error("price_analysis_node 오류: %s", exc)
         msg = AIMessage(content="ANALYSIS_DONE: LLM error — defaulting to no-book")
         return {"messages": [msg], "active_phase": "price_analysis", "should_book": False}
 
@@ -210,10 +209,9 @@ Step 4 — End your response with:
 
 
 def booking_node(state: FlightState) -> dict:
-    """Book the cheapest flight via flight_book tool.
+    """flight_book tool을 통해 가장 저렴한 항공편을 예약합니다.
 
-    Sets active_phase="booking" so the shared ToolNode routes back here
-    after tool calls complete.
+    tool 호출 완료 후 공유 ToolNode가 이 노드로 돌아오도록 active_phase="booking"을 설정합니다.
     """
     flight = state.get("cheapest_flight") or {}
     llm = ChatOpenAI(model=config.LLM_MODEL, temperature=0).bind_tools(BOOKING_TOOLS)
@@ -231,18 +229,18 @@ def booking_node(state: FlightState) -> dict:
     try:
         response = llm.invoke(messages)
     except Exception as exc:
-        logger.error("booking_node error: %s", exc)
+        logger.error("booking_node 오류: %s", exc)
         response = AIMessage(content=f"BOOKING_FAILED: {exc}")
 
     return {"messages": [response], "active_phase": "booking"}
 
 
 def extract_booking_result(state: FlightState) -> dict:
-    """Read booking confirmation from memory and hydrate FlightState.
+    """메모리에서 예약 확인 정보를 읽어 FlightState를 업데이트합니다.
 
-    Called as an inline node after BookingAgent's ToolNode pass completes,
-    before NotificationAgent runs — so notification prompts can reference
-    booking_reference, confirmed_price, and booking_url directly from state.
+    BookingAgent의 ToolNode 패스 완료 후, NotificationAgent 실행 전에
+    인라인 노드로 호출됩니다. 덕분에 알림 프롬프트에서 state의
+    booking_reference, confirmed_price, booking_url를 직접 참조할 수 있습니다.
     """
     from mcp.memory import get_memory_mcp
     mem = get_memory_mcp()
@@ -269,7 +267,7 @@ def extract_booking_result(state: FlightState) -> dict:
         "booking_confirmed": confirmed,
         "booking_reference": data.get("booking_reference"),
         "confirmed_price": data.get("price"),
-        "booking_url": data.get("booking_url"),  # present in live/Amadeus mode
+        "booking_url": data.get("booking_url"),  # live/Amadeus 모드에서만 존재
     }
 
 
@@ -341,10 +339,10 @@ Step 2 — End with: NOTIFICATION_SENT: skipped
 
 
 def notification_node(state: FlightState) -> dict:
-    """Send booking confirmation or 'no deal' status via Slack/email/console.
+    """예약 확인 또는 '딜 없음' 상태를 Slack/이메일/콘솔로 발송합니다.
 
-    booking_confirmed=True  → full Slack + email notification
-    booking_confirmed=False → brief console log only
+    booking_confirmed=True  → Slack + 이메일 전체 알림
+    booking_confirmed=False → 콘솔 로그만 간략히 출력
     """
     booking_confirmed = state.get("booking_confirmed", False)
     flight = state.get("cheapest_flight") or {}
@@ -381,7 +379,7 @@ def notification_node(state: FlightState) -> dict:
     try:
         response = llm.invoke(messages)
     except Exception as exc:
-        logger.error("notification_node error: %s", exc)
+        logger.error("notification_node 오류: %s", exc)
         response = AIMessage(content=f"NOTIFICATION_SENT: error={exc}")
 
     return {"messages": [response], "active_phase": "notification"}

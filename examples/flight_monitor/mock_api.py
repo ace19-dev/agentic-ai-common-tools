@@ -1,10 +1,10 @@
-"""Mock flight search and booking API.
+"""Mock 항공편 검색 및 예약 API.
 
-Runs as a background thread using Python's built-in HTTP server.
-Simulates realistic price fluctuations: most checks return prices above
-the threshold; specified check numbers return cheap deals.
+Python 내장 HTTP 서버를 사용해 백그라운드 스레드로 실행됩니다.
+대부분의 체크에서는 임계값 이상의 가격을 반환하고,
+지정된 체크 번호에서는 저렴한 딜이 등장하는 현실적인 가격 변동을 시뮬레이션합니다.
 
-Endpoints:
+엔드포인트:
   GET  /api/flights/search?origin=ICN&destination=NRT&date=...&max_price=300
   POST /api/flights/book        { flight_id, airline, price, passenger_name, ... }
   GET  /api/health
@@ -26,14 +26,14 @@ _AIRLINES = [
     {"code": "LJ", "name": "Jin Air"},
 ]
 
-# Mutable server state — reset by MockFlightAPI.reset()
+# 변경 가능한 서버 상태 — MockFlightAPI.reset()으로 초기화
 _state: dict = {"check_count": 0, "cheap_on": set()}
 
 
 class _FlightHandler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:
-        """Dispatch GET requests to /api/flights/search or /api/health."""
+        """/api/flights/search 또는 /api/health로 GET 요청을 디스패치합니다."""
         parsed = urlparse(self.path)
         qs = parse_qs(parsed.query)
         if parsed.path == "/api/flights/search":
@@ -44,7 +44,7 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
             self._json(404, {"error": "endpoint not found"})
 
     def do_POST(self) -> None:
-        """Dispatch POST requests to /api/flights/book."""
+        """/api/flights/book으로 POST 요청을 디스패치합니다."""
         if self.path == "/api/flights/book":
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length)) if length else {}
@@ -52,14 +52,13 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
         else:
             self._json(404, {"error": "endpoint not found"})
 
-    # ── Route handlers ────────────────────────────────────────────────────────
+    # ── 라우트 핸들러 ─────────────────────────────────────────────────────────
 
     def _search(self, qs: dict) -> None:
-        """Simulate flight search with realistic price variation.
+        """현실적인 가격 변동을 포함한 항공편 검색을 시뮬레이션합니다.
 
-        On check numbers listed in _state["cheap_on"], the first airline in
-        the randomly-sampled set receives a price below the max_price threshold
-        (58–79 % of it) to simulate a deal becoming available.
+        _state["cheap_on"]에 지정된 체크 번호에서는 무작위로 샘플링된 항공사 중
+        첫 번째 항공사가 max_price의 58~79% 가격을 받아 딜이 등장하는 것처럼 보입니다.
         """
         _state["check_count"] += 1
         count = _state["check_count"]
@@ -74,7 +73,7 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
         airlines = random.sample(_AIRLINES, min(4, len(_AIRLINES)))
         flights = []
         for i, airline in enumerate(airlines):
-            # On deal checks, the first airline gets a price well below threshold
+            # 딜 체크에서는 첫 번째 항공사가 임계값보다 훨씬 낮은 가격을 받음
             if is_deal_check and i == 0:
                 price = max_price * random.uniform(0.58, 0.79)
                 deal_flag = True
@@ -113,7 +112,7 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
         })
 
     def _book(self, body: dict) -> None:
-        """Always confirm the booking and return a random reference number."""
+        """항상 예약을 확인하고 무작위 참조 번호를 반환합니다."""
         self._json(200, {
             "booking_reference": f"AGNT{random.randint(10000, 99999)}",
             "status": "CONFIRMED",
@@ -128,10 +127,10 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
             "confirmed_at": datetime.now().isoformat(),
         })
 
-    # ── Helpers ───────────────────────────────────────────────────────────────
+    # ── 헬퍼 ─────────────────────────────────────────────────────────────────
 
     def _json(self, status: int, data: dict) -> None:
-        """Write a JSON response with the given HTTP status code."""
+        """주어진 HTTP 상태 코드와 함께 JSON 응답을 씁니다."""
         body = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
@@ -140,7 +139,7 @@ class _FlightHandler(http.server.BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def log_message(self, *args) -> None:
-        pass  # suppress default access log
+        pass  # 기본 접근 로그 억제
 
 
 def _get(qs: dict, key: str, default: str) -> str:
@@ -148,12 +147,12 @@ def _get(qs: dict, key: str, default: str) -> str:
     return vals[0] if vals else default
 
 
-# ── Public API ────────────────────────────────────────────────────────────────
+# ── 공개 API ──────────────────────────────────────────────────────────────────
 
 class MockFlightAPI:
-    """Lightweight mock HTTP server for flight search and booking.
+    """항공편 검색 및 예약을 위한 경량 Mock HTTP 서버.
 
-    Usage:
+    사용법:
         api = MockFlightAPI(port=18990, cheap_on_checks=[3, 6]).start()
         print(api.base_url)  # http://127.0.0.1:18990
         ...
@@ -170,7 +169,7 @@ class MockFlightAPI:
         self._thread: threading.Thread | None = None
 
     def start(self) -> "MockFlightAPI":
-        """Start the server in a daemon thread and return self for chaining."""
+        """데몬 스레드에서 서버를 시작하고 메서드 체이닝을 위해 self를 반환합니다."""
         self._thread = threading.Thread(
             target=self._server.serve_forever, daemon=True, name="mock-flight-api"
         )
@@ -178,12 +177,12 @@ class MockFlightAPI:
         return self
 
     def stop(self) -> None:
-        """Shut down the HTTP server; blocks until the server thread exits."""
+        """HTTP 서버를 종료합니다. 서버 스레드가 끝날 때까지 블로킹됩니다."""
         if self._server:
             self._server.shutdown()
 
     def reset(self) -> None:
-        """Reset the check counter (useful between test runs)."""
+        """체크 카운터를 초기화합니다 (테스트 실행 사이에 유용합니다)."""
         _state["check_count"] = 0
 
     @property

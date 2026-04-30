@@ -1,12 +1,12 @@
 """
-FlightState — shared state for the flight-monitor multi-agent graph.
+FlightState — 항공편 모니터 멀티에이전트 그래프의 공유 상태.
 
-Each monitoring cycle starts with a fresh FlightState created by run.py.
-Fields are grouped into four logical sections that mirror the agent pipeline:
-  1. Search criteria  — immutable inputs provided by MonitorCriteria
-  2. Per-cycle state  — check number and active_phase for ToolNode routing
-  3. Search results   — populated by SearchAgent + PriceAnalysisAgent
-  4. Booking result   — populated by BookingAgent + extract_booking_result
+모니터링 사이클마다 run.py가 새로운 FlightState를 생성합니다.
+필드는 에이전트 파이프라인을 반영하는 네 가지 논리 섹션으로 구성됩니다:
+  1. 검색 조건   — MonitorCriteria가 제공하는 불변 입력값
+  2. 사이클 상태 — 체크 번호 및 ToolNode 라우팅용 active_phase
+  3. 검색 결과   — SearchAgent + PriceAnalysisAgent가 채웁니다
+  4. 예약 결과   — BookingAgent + extract_booking_result가 채웁니다
 """
 from __future__ import annotations
 
@@ -18,38 +18,38 @@ from typing_extensions import TypedDict
 
 
 class FlightState(TypedDict):
-    """Shared state flowing through the flight-monitor multi-agent graph.
+    """항공편 모니터 멀티에이전트 그래프를 흐르는 공유 상태.
 
-    One instance per monitoring check cycle. The monitoring loop in run.py
-    creates a fresh state for each cycle and increments check_number.
+    모니터링 체크 사이클마다 인스턴스 하나가 생성됩니다.
+    run.py의 모니터링 루프는 사이클마다 새로운 state를 생성하고 check_number를 증가시킵니다.
     """
 
     messages: Annotated[List[BaseMessage], operator.add]
 
-    # ── Search criteria (immutable across cycles) ─────────────────────────────
-    origin: str           # IATA code, e.g. "ICN"
-    destination: str      # IATA code, e.g. "NRT"
-    travel_date: str      # ISO date, e.g. "2026-06-15"
-    max_price: float      # Price threshold in USD — book if cheaper
-    currency: str         # Display currency ("USD")
-    passenger_name: str   # Passenger name for the booking
-    passenger_email: str  # Contact email for booking confirmation
-    api_base_url: str     # Base URL of the flight search/booking API (mock only)
+    # ── 검색 조건 (사이클 간 불변) ────────────────────────────────────────────
+    origin: str           # IATA 코드, 예: "ICN"
+    destination: str      # IATA 코드, 예: "NRT"
+    travel_date: str      # ISO 날짜, 예: "2026-06-15"
+    max_price: float      # USD 가격 임계값 — 이 가격보다 저렴하면 예약
+    currency: str         # 표시 통화 ("USD")
+    passenger_name: str   # 예약자 이름
+    passenger_email: str  # 예약 확인용 연락 이메일
+    api_base_url: str     # 항공편 검색/예약 API 기본 URL (mock 모드 전용)
 
-    # ── Per-cycle state ────────────────────────────────────────────────────────
-    check_number: int                  # Current monitoring iteration (1-indexed)
+    # ── 사이클별 상태 ─────────────────────────────────────────────────────────
+    check_number: int                  # 현재 모니터링 반복 횟수 (1부터 시작)
     active_phase: str                  # "search" | "price_analysis" | "booking" | "notification"
 
-    # ── Populated by SearchAgent ───────────────────────────────────────────────
-    available_flights: List[Dict]      # All flights returned by the search API
-    cheapest_price: Optional[float]    # Price of the cheapest found flight
-    cheapest_flight: Optional[Dict]    # Full flight object of the cheapest option
+    # ── SearchAgent가 채우는 필드 ─────────────────────────────────────────────
+    available_flights: List[Dict]      # 검색 API가 반환한 전체 항공편 목록
+    cheapest_price: Optional[float]    # 가장 저렴한 항공편 가격
+    cheapest_flight: Optional[Dict]    # 가장 저렴한 항공편의 전체 객체
 
-    # ── Populated by PriceAnalysisAgent ───────────────────────────────────────
-    should_book: bool                  # True when cheapest_price < max_price
+    # ── PriceAnalysisAgent가 채우는 필드 ─────────────────────────────────────
+    should_book: bool                  # cheapest_price < max_price이면 True
 
-    # ── Populated by BookingAgent ──────────────────────────────────────────────
-    booking_confirmed: bool            # True when the booking API returns CONFIRMED
-    booking_reference: Optional[str]   # Booking confirmation code, e.g. "AGNT48271"
-    confirmed_price: Optional[float]   # Final booked price
-    booking_url: Optional[str]         # Google Flights deep-link (live/Amadeus mode only)
+    # ── BookingAgent가 채우는 필드 ───────────────────────────────────────────
+    booking_confirmed: bool            # 예약 API가 CONFIRMED를 반환하면 True
+    booking_reference: Optional[str]   # 예약 확인 코드, 예: "AGNT48271"
+    confirmed_price: Optional[float]   # 최종 예약 가격
+    booking_url: Optional[str]         # Google Flights 딥 링크 (live/Amadeus 모드 전용)

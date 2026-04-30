@@ -1,40 +1,40 @@
 """
-Flight Monitor — Entry Point
-==============================
-An agentic AI system that continuously monitors flight prices and
-automatically books (or confirms a deal) when a cheap ticket is found.
+Flight Monitor — 진입점
+========================
+저렴한 항공권을 발견하면 자동으로 예약(또는 딜 확인)하는
+에이전틱 AI 항공편 가격 모니터링 시스템입니다.
 
-Modes:
-  mock    (default) — local MockFlightAPI HTTP server; deals appear on
-                      check numbers specified by --cheap-on.
-  amadeus           — real Amadeus for Developers API; set credentials via
-                      env vars or auth vault before running.
+모드:
+  mock    (기본값) — 로컬 MockFlightAPI HTTP 서버; --cheap-on으로 지정한
+                     체크 번호에서 딜이 등장합니다.
+  amadeus           — 실제 Amadeus for Developers API; 실행 전
+                      환경 변수 또는 auth vault에 자격증명을 설정하세요.
 
-Multi-agent composition:
-  SearchAgent        → Calls flight_search, stores results in memory
-  PriceAnalysisAgent → Reads results, decides whether to book (structured output)
-  BookingAgent       → Calls flight_book when price < threshold
-  NotificationAgent  → Sends Slack + email alerts with outcome
+멀티에이전트 구성:
+  SearchAgent        → flight_search 호출, 결과를 메모리에 저장
+  PriceAnalysisAgent → 결과 읽기, 예약 여부 결정 (구조화 출력)
+  BookingAgent       → 가격 < 임계값이면 flight_book 호출
+  NotificationAgent  → Slack + 이메일 알림 발송
 
-Usage:
-  # Mock mode (zero config)
+사용법:
+  # Mock 모드 (설정 없이 바로 실행)
   python -m examples.flight_monitor.run
 
-  # Mock mode — custom route
+  # Mock 모드 — 커스텀 노선
   python -m examples.flight_monitor.run --origin ICN --dest BKK --date 2026-08-01 --max-price 350
 
-  # Live mode — Amadeus (set AMADEUS_CLIENT_ID + AMADEUS_CLIENT_SECRET in .env first)
+  # Live 모드 — Amadeus (.env에 AMADEUS_CLIENT_ID + AMADEUS_CLIENT_SECRET 설정 후)
   python -m examples.flight_monitor.run --mode amadeus --origin ICN --dest NRT --date 2026-07-15
 
-  # Live mode — credentials from auth vault
+  # Live 모드 — auth vault에서 자격증명 로드
   python -m examples.flight_monitor.run --mode amadeus --amadeus-key amadeus
 
-Environment:
-  NOTIFICATION_DRY_RUN=true     (default — Slack/email printed to console)
+환경 변수:
+  NOTIFICATION_DRY_RUN=true     (기본값 — Slack/이메일이 콘솔에 출력됨)
   EMAIL_RECIPIENT=you@email.com
   AMADEUS_CLIENT_ID=...
   AMADEUS_CLIENT_SECRET=...
-  AMADEUS_BASE_URL=https://test.api.amadeus.com   (switch to production URL for live bookings)
+  AMADEUS_BASE_URL=https://test.api.amadeus.com   (실제 예약 시 프로덕션 URL로 교체)
 """
 from __future__ import annotations
 
@@ -74,40 +74,40 @@ class MonitorCriteria:
     passenger_email: str = ""
     check_interval_sec: int = 8
     max_checks: int = 10
-    # Mock-mode only — which check numbers trigger a deal
+    # Mock 모드 전용 — 딜이 발생할 체크 번호
     cheap_on_checks: list[int] = field(default_factory=lambda: [3, 7])
-    # API mode: "mock" | "amadeus"
+    # API 모드: "mock" | "amadeus"
     mode: str = "mock"
-    # Auth vault service name for Amadeus credentials (mode=amadeus only)
+    # Amadeus 자격증명의 auth vault 서비스 이름 (mode=amadeus 전용)
     amadeus_key_service: str = "amadeus"
 
 
-# ── Amadeus credential loader ─────────────────────────────────────────────────
+# ── Amadeus 자격증명 로더 ─────────────────────────────────────────────────────
 
 
 def _load_amadeus_client(criteria: MonitorCriteria) -> AmadeusFlightClient:
-    """Load Amadeus credentials from auth vault or env vars and return a client."""
+    """auth vault 또는 환경 변수에서 Amadeus 자격증명을 로드하고 클라이언트를 반환합니다."""
     client_id = config.AMADEUS_CLIENT_ID
     client_secret = config.AMADEUS_CLIENT_SECRET
 
     if not (client_id and client_secret):
-        # Try auth vault: stored as "client_id:client_secret"
+        # auth vault 시도: "client_id:client_secret" 형식으로 저장되어 있음
         try:
             from mcp.auth import get_auth_mcp
             auth_result = get_auth_mcp().retrieve(criteria.amadeus_key_service)
             if auth_result.success and ":" in (auth_result.data or ""):
                 client_id, client_secret = auth_result.data.split(":", 1)
-                logger.info("Amadeus credentials loaded from auth vault (%s)", criteria.amadeus_key_service)
+                logger.info("auth vault에서 Amadeus 자격증명 로드 완료 (%s)", criteria.amadeus_key_service)
         except Exception as exc:
-            logger.warning("Could not load Amadeus credentials from vault: %s", exc)
+            logger.warning("vault에서 Amadeus 자격증명을 로드할 수 없습니다: %s", exc)
 
     if not (client_id and client_secret):
         print(
-            "\n[ERROR] Amadeus credentials not found.\n"
-            "  Option A — set in .env:\n"
+            "\n[ERROR] Amadeus 자격증명을 찾을 수 없습니다.\n"
+            "  방법 A — .env 파일에 설정:\n"
             "    AMADEUS_CLIENT_ID=<id>\n"
             "    AMADEUS_CLIENT_SECRET=<secret>\n\n"
-            "  Option B — store in auth vault:\n"
+            "  방법 B — auth vault에 저장:\n"
             "    from tools.auth_tools import auth_store_key\n"
             "    auth_store_key.invoke({'service': 'amadeus', 'key': '<id>:<secret>'})\n"
         )
@@ -120,7 +120,7 @@ def _load_amadeus_client(criteria: MonitorCriteria) -> AmadeusFlightClient:
     )
 
 
-# ── Print helpers ─────────────────────────────────────────────────────────────
+# ── 출력 헬퍼 ─────────────────────────────────────────────────────────────────
 
 
 def _print_header(criteria: MonitorCriteria) -> None:
@@ -170,7 +170,7 @@ def _print_result(result: dict, max_price: float) -> None:
         print(f"\n  Agent summary:\n  {last_msg[:300]}")
 
 
-# ── State builder ─────────────────────────────────────────────────────────────
+# ── 초기 state 빌더 ───────────────────────────────────────────────────────────
 
 
 def _build_initial_state(criteria: MonitorCriteria, api_base_url: str, check: int) -> dict:
@@ -183,7 +183,7 @@ def _build_initial_state(criteria: MonitorCriteria, api_base_url: str, check: in
     )
     return {
         "messages": [HumanMessage(content=task)],
-        # Criteria
+        # 검색 조건
         "origin": criteria.origin,
         "destination": criteria.destination,
         "travel_date": criteria.travel_date,
@@ -192,10 +192,10 @@ def _build_initial_state(criteria: MonitorCriteria, api_base_url: str, check: in
         "passenger_name": criteria.passenger_name,
         "passenger_email": criteria.passenger_email,
         "api_base_url": api_base_url,
-        # Cycle state
+        # 사이클 상태
         "check_number": check,
         "active_phase": "search",
-        # Defaults
+        # 기본값
         "available_flights": [],
         "cheapest_price": None,
         "cheapest_flight": None,
@@ -207,19 +207,19 @@ def _build_initial_state(criteria: MonitorCriteria, api_base_url: str, check: in
     }
 
 
-# ── Main loop ─────────────────────────────────────────────────────────────────
+# ── 메인 루프 ─────────────────────────────────────────────────────────────────
 
 
 def run(criteria: MonitorCriteria | None = None) -> dict | None:
-    """Start the flight monitoring loop.
+    """항공편 모니터링 루프를 시작합니다.
 
-    Returns the final FlightState dict when a booking is confirmed or
-    max_checks is reached. Returns None if no booking was made.
+    예약이 확인되거나 max_checks에 도달하면 최종 FlightState dict를 반환합니다.
+    예약이 없으면 None을 반환합니다.
     """
     if criteria is None:
         criteria = MonitorCriteria()
 
-    # ── Configure the flight client ───────────────────────────────────────────
+    # ── 항공편 클라이언트 설정 ────────────────────────────────────────────────
     mock_api = None
     api_base_url = ""
 
@@ -228,15 +228,15 @@ def run(criteria: MonitorCriteria | None = None) -> dict | None:
         mock_api = MockFlightAPI(port=18990, cheap_on_checks=criteria.cheap_on_checks).start()
         api_base_url = mock_api.base_url
         configure_flight_client(MockFlightClient(base_url=api_base_url))
-        logger.info("Mock flight API started at %s", api_base_url)
+        logger.info("Mock 항공편 API 시작: %s", api_base_url)
     else:
         amadeus = _load_amadeus_client(criteria)
         configure_flight_client(amadeus)
-        logger.info("Amadeus flight client configured (base_url=%s)", config.AMADEUS_BASE_URL)
+        logger.info("Amadeus 항공편 클라이언트 설정 완료 (base_url=%s)", config.AMADEUS_BASE_URL)
 
     _print_header(criteria)
 
-    # ── Build the LangGraph workflow ──────────────────────────────────────────
+    # ── LangGraph 워크플로우 빌드 ─────────────────────────────────────────────
     app = build_flight_graph()
     final_result = None
 
@@ -249,7 +249,7 @@ def run(criteria: MonitorCriteria | None = None) -> dict | None:
             try:
                 result = app.invoke(initial_state)
             except Exception as exc:
-                logger.error("Workflow error on check %d: %s", check, exc)
+                logger.error("체크 %d 워크플로우 오류: %s", check, exc)
                 print(f"  ⚠️  Workflow error: {exc}")
                 if check < criteria.max_checks:
                     time.sleep(criteria.check_interval_sec)
@@ -292,37 +292,37 @@ def run(criteria: MonitorCriteria | None = None) -> dict | None:
 
 def _parse_args() -> MonitorCriteria:
     parser = argparse.ArgumentParser(
-        description="Agentic flight price monitor — books automatically when price drops",
+        description="에이전틱 항공편 가격 모니터 — 가격 하락 시 자동 예약",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Mock mode (default, zero config)
+  # Mock 모드 (기본값, 설정 없이 실행)
   python -m examples.flight_monitor.run
 
-  # Mock — custom route and deal simulation
+  # Mock — 커스텀 노선 및 딜 시뮬레이션
   python -m examples.flight_monitor.run --origin ICN --dest BKK --date 2026-08-01 --max-price 350 --cheap-on 2 5
 
-  # Live Amadeus mode (credentials from .env)
+  # Live Amadeus 모드 (.env에서 자격증명 로드)
   python -m examples.flight_monitor.run --mode amadeus --origin ICN --dest NRT --date 2026-07-15
 
-  # Live Amadeus mode (credentials from auth vault)
+  # Live Amadeus 모드 (auth vault에서 자격증명 로드)
   python -m examples.flight_monitor.run --mode amadeus --amadeus-key amadeus
         """,
     )
     parser.add_argument("--mode", choices=["mock", "amadeus"], default="mock",
-                        help="API backend: 'mock' (default) or 'amadeus' (real Amadeus API)")
-    parser.add_argument("--origin",       default="ICN",                  help="Origin IATA code (default: ICN)")
-    parser.add_argument("--dest",         default="NRT",                  help="Destination IATA code (default: NRT)")
-    parser.add_argument("--date",         default="2026-07-15",           help="Travel date YYYY-MM-DD")
-    parser.add_argument("--max-price",    type=float, default=280.0,      help="Maximum acceptable price in USD")
-    parser.add_argument("--passenger",    default="Agentic AI Traveler",  help="Passenger name")
-    parser.add_argument("--email",        default="",                     help="Passenger email (for booking confirmation)")
-    parser.add_argument("--interval",     type=int,   default=8,          help="Seconds between checks")
-    parser.add_argument("--max-checks",   type=int,   default=10,         help="Maximum number of checks")
+                        help="API 백엔드: 'mock' (기본값) 또는 'amadeus' (실제 Amadeus API)")
+    parser.add_argument("--origin",       default="ICN",                  help="출발지 IATA 코드 (기본값: ICN)")
+    parser.add_argument("--dest",         default="NRT",                  help="목적지 IATA 코드 (기본값: NRT)")
+    parser.add_argument("--date",         default="2026-07-15",           help="여행 날짜 YYYY-MM-DD")
+    parser.add_argument("--max-price",    type=float, default=280.0,      help="최대 허용 가격 (USD)")
+    parser.add_argument("--passenger",    default="Agentic AI Traveler",  help="승객 이름")
+    parser.add_argument("--email",        default="",                     help="승객 이메일 (예약 확인 발송용)")
+    parser.add_argument("--interval",     type=int,   default=8,          help="체크 간격 (초)")
+    parser.add_argument("--max-checks",   type=int,   default=10,         help="최대 체크 횟수")
     parser.add_argument("--cheap-on",     type=int, nargs="+", default=[3, 7],
-                        help="Check numbers that simulate cheap prices (mock mode only)")
+                        help="저렴한 가격을 시뮬레이션할 체크 번호 (mock 모드 전용)")
     parser.add_argument("--amadeus-key",  default="amadeus",
-                        help="Auth vault service name for Amadeus credentials (default: 'amadeus')")
+                        help="Amadeus 자격증명의 auth vault 서비스 이름 (기본값: 'amadeus')")
     args = parser.parse_args()
 
     return MonitorCriteria(
