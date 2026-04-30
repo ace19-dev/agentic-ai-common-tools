@@ -1,163 +1,162 @@
 <svg width="900" height="640" viewBox="0 0 900 640" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
   <!-- Background -->
-  <rect width="900" height="640" fill="#0f172a"/>
+  <rect width="900" height="640" fill="#ffffff"/>
 
   <!-- Title -->
-  <text x="450" y="42" text-anchor="middle" fill="#f1f5f9" font-size="20" font-weight="bold">Multi-Agent Architecture Overview</text>
+  <text x="450" y="42" text-anchor="middle" fill="#1e293b" font-size="20" font-weight="bold">Multi-Agent Architecture Overview</text>
 
   <!-- ── Layer 1: User ─────────────────────────────────────── -->
-  <rect x="350" y="70" width="200" height="52" rx="10" fill="#1e40af" stroke="#3b82f6" stroke-width="1.5"/>
-  <text x="450" y="91" text-anchor="middle" fill="#bfdbfe" font-size="11" font-weight="bold">USER REQUEST</text>
-  <text x="450" y="108" text-anchor="middle" fill="#93c5fd" font-size="10">HumanMessage</text>
+  <rect x="350" y="70" width="200" height="52" rx="10" fill="#dbeafe" stroke="#3b82f6" stroke-width="1.5"/>
+  <text x="450" y="91" text-anchor="middle" fill="#1e40af" font-size="11" font-weight="bold">USER REQUEST</text>
+  <text x="450" y="108" text-anchor="middle" fill="#2563eb" font-size="10">HumanMessage</text>
 
   <!-- Arrow down -->
-  <line x1="450" y1="122" x2="450" y2="148" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="122" x2="450" y2="148" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 2: Multi-Agent Graph ────────────────────────── -->
-  <rect x="60" y="148" width="780" height="145" rx="12" fill="#1e293b" stroke="#334155" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="450" y="170" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">LANGGRAPH MULTI-AGENT WORKFLOW</text>
+  <rect x="60" y="148" width="780" height="145" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="450" y="170" text-anchor="middle" fill="#64748b" font-size="10" font-weight="bold">LANGGRAPH MULTI-AGENT WORKFLOW</text>
 
   <!-- Planner -->
-  <rect x="95" y="182" width="160" height="88" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1.5"/>
-  <text x="175" y="203" text-anchor="middle" fill="#c7d2fe" font-size="11" font-weight="bold">🧠 Planner</text>
-  <text x="175" y="220" text-anchor="middle" fill="#a5b4fc" font-size="9">Analyses request</text>
-  <text x="175" y="234" text-anchor="middle" fill="#a5b4fc" font-size="9">Produces step-by-step</text>
-  <text x="175" y="248" text-anchor="middle" fill="#a5b4fc" font-size="9">execution plan</text>
-  <text x="175" y="263" text-anchor="middle" fill="#818cf8" font-size="9">gpt-4o-mini</text>
+  <rect x="95" y="182" width="160" height="88" rx="8" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="175" y="203" text-anchor="middle" fill="#3730a3" font-size="11" font-weight="bold">🧠 Planner</text>
+  <text x="175" y="220" text-anchor="middle" fill="#4338ca" font-size="9">Analyses request</text>
+  <text x="175" y="234" text-anchor="middle" fill="#4338ca" font-size="9">Produces step-by-step</text>
+  <text x="175" y="248" text-anchor="middle" fill="#4338ca" font-size="9">execution plan</text>
+  <text x="175" y="263" text-anchor="middle" fill="#6366f1" font-size="9">gpt-4o-mini</text>
 
   <!-- Executor -->
-  <rect x="370" y="182" width="160" height="88" rx="8" fill="#14532d" stroke="#22c55e" stroke-width="1.5"/>
-  <text x="450" y="203" text-anchor="middle" fill="#bbf7d0" font-size="11" font-weight="bold">⚙️ Executor</text>
-  <text x="450" y="220" text-anchor="middle" fill="#86efac" font-size="9">Calls tools to execute</text>
-  <text x="450" y="234" text-anchor="middle" fill="#86efac" font-size="9">each plan step</text>
-  <text x="450" y="248" text-anchor="middle" fill="#86efac" font-size="9">Max 10 iterations</text>
-  <text x="450" y="263" text-anchor="middle" fill="#4ade80" font-size="9">gpt-4o-mini + tools</text>
+  <rect x="370" y="182" width="160" height="88" rx="8" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="450" y="203" text-anchor="middle" fill="#14532d" font-size="11" font-weight="bold">⚙️ Executor</text>
+  <text x="450" y="220" text-anchor="middle" fill="#16a34a" font-size="9">Calls tools to execute</text>
+  <text x="450" y="234" text-anchor="middle" fill="#16a34a" font-size="9">each plan step</text>
+  <text x="450" y="248" text-anchor="middle" fill="#16a34a" font-size="9">Max 10 iterations</text>
+  <text x="450" y="263" text-anchor="middle" fill="#15803d" font-size="9">gpt-4o-mini + tools</text>
 
   <!-- Reviewer -->
-  <rect x="645" y="182" width="160" height="88" rx="8" fill="#4a1942" stroke="#ec4899" stroke-width="1.5"/>
-  <text x="725" y="203" text-anchor="middle" fill="#fbcfe8" font-size="11" font-weight="bold">🔍 Reviewer</text>
-  <text x="725" y="220" text-anchor="middle" fill="#f9a8d4" font-size="9">Validates output quality</text>
-  <text x="725" y="234" text-anchor="middle" fill="#f9a8d4" font-size="9">APPROVED / REVISION</text>
-  <text x="725" y="248" text-anchor="middle" fill="#f9a8d4" font-size="9">NEEDED / FAILED</text>
-  <text x="725" y="263" text-anchor="middle" fill="#f472b6" font-size="9">gpt-4o-mini</text>
+  <rect x="645" y="182" width="160" height="88" rx="8" fill="#fdf2f8" stroke="#ec4899" stroke-width="1.5"/>
+  <text x="725" y="203" text-anchor="middle" fill="#9d174d" font-size="11" font-weight="bold">🔍 Reviewer</text>
+  <text x="725" y="220" text-anchor="middle" fill="#be185d" font-size="9">Validates output quality</text>
+  <text x="725" y="234" text-anchor="middle" fill="#be185d" font-size="9">APPROVED / REVISION</text>
+  <text x="725" y="248" text-anchor="middle" fill="#be185d" font-size="9">NEEDED / FAILED</text>
+  <text x="725" y="263" text-anchor="middle" fill="#db2777" font-size="9">gpt-4o-mini</text>
 
   <!-- Arrows between agents -->
-  <line x1="255" y1="226" x2="368" y2="226" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="530" y1="226" x2="643" y2="226" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="255" y1="226" x2="368" y2="226" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="530" y1="226" x2="643" y2="226" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
   <!-- Revision loop arrow -->
-  <path d="M645 260 Q 580 310 530 260" fill="none" stroke="#6b7280" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-grey)"/>
-  <text x="583" y="302" text-anchor="middle" fill="#9ca3af" font-size="9">revision needed</text>
+  <path d="M645 260 Q 580 310 530 260" fill="none" stroke="#9ca3af" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arr-grey)"/>
+  <text x="583" y="302" text-anchor="middle" fill="#6b7280" font-size="9">revision needed</text>
 
   <!-- Arrow down from graph to Tool Layer -->
-  <line x1="450" y1="293" x2="450" y2="318" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="293" x2="450" y2="318" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 3: Tool Layer ───────────────────────────────── -->
-  <rect x="60" y="318" width="780" height="100" rx="12" fill="#1c1917" stroke="#44403c" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="450" y="338" text-anchor="middle" fill="#a8a29e" font-size="10" font-weight="bold">TOOL LAYER  (LangChain @tool wrappers — 25 tools total)</text>
+  <rect x="60" y="318" width="780" height="100" rx="12" fill="#fafaf9" stroke="#d6d3d1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="450" y="338" text-anchor="middle" fill="#57534e" font-size="10" font-weight="bold">TOOL LAYER  (LangChain @tool wrappers — 28 tools total)</text>
 
-  <!-- Tool boxes: 7 boxes, width=97, gap=10 -->
-  <!-- Memory (5 tools) -->
-  <rect x="80" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="128" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Memory</text>
-  <text x="128" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">get/set/delete</text>
-  <text x="128" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">list_keys</text>
+  <!-- Memory -->
+  <rect x="80" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="128" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Memory</text>
+  <text x="128" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">get/set/delete</text>
+  <text x="128" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">list_keys</text>
   <text x="128" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
 
-  <!-- Retrieval (5 tools) -->
-  <rect x="187" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="235" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Retrieval</text>
-  <text x="235" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">index/search/delete</text>
-  <text x="235" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">build_context</text>
+  <!-- Retrieval -->
+  <rect x="187" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="235" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Retrieval</text>
+  <text x="235" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">index/search/delete</text>
+  <text x="235" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">build_context</text>
   <text x="235" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">5 tools</text>
 
-  <!-- Crawl (4 tools) -->
-  <rect x="294" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="342" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Crawl</text>
-  <text x="342" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">crawl/sitemap</text>
-  <text x="342" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">recursive</text>
+  <!-- Crawl -->
+  <rect x="294" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="342" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Crawl</text>
+  <text x="342" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">crawl/sitemap</text>
+  <text x="342" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">recursive</text>
   <text x="342" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
 
-  <!-- HTTP (2 tools) -->
-  <rect x="401" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="449" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">HTTP</text>
-  <text x="449" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">get/post</text>
-  <text x="449" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">retry + backoff</text>
+  <!-- HTTP -->
+  <rect x="401" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="449" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">HTTP</text>
+  <text x="449" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">get/post</text>
+  <text x="449" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">retry + backoff</text>
   <text x="449" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">2 tools</text>
 
-  <!-- Scheduler (3 tools) -->
-  <rect x="508" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="556" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Scheduler</text>
-  <text x="556" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">create/list</text>
-  <text x="556" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">remove</text>
+  <!-- Scheduler -->
+  <rect x="508" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="556" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Scheduler</text>
+  <text x="556" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">create/list</text>
+  <text x="556" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">remove</text>
   <text x="556" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">3 tools</text>
 
-  <!-- Notification (3 tools) -->
-  <rect x="615" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="663" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Notification</text>
-  <text x="663" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">email/slack</text>
-  <text x="663" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">console</text>
+  <!-- Notification -->
+  <rect x="615" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="663" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Notification</text>
+  <text x="663" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">email/slack</text>
+  <text x="663" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">console</text>
   <text x="663" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">3 tools</text>
 
-  <!-- Auth (4 tools) -->
-  <rect x="722" y="348" width="97" height="55" rx="6" fill="#292524" stroke="#57534e" stroke-width="1"/>
-  <text x="770" y="366" text-anchor="middle" fill="#d6d3d1" font-size="9" font-weight="bold">Auth</text>
-  <text x="770" y="380" text-anchor="middle" fill="#a8a29e" font-size="7.5">store/get</text>
-  <text x="770" y="391" text-anchor="middle" fill="#a8a29e" font-size="7.5">validate/revoke</text>
-  <text x="770" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">4 tools</text>
+  <!-- Auth -->
+  <rect x="722" y="348" width="97" height="55" rx="6" fill="#f5f5f4" stroke="#a8a29e" stroke-width="1"/>
+  <text x="770" y="366" text-anchor="middle" fill="#292524" font-size="9" font-weight="bold">Auth</text>
+  <text x="770" y="380" text-anchor="middle" fill="#57534e" font-size="7.5">store/get</text>
+  <text x="770" y="391" text-anchor="middle" fill="#57534e" font-size="7.5">validate/revoke</text>
+  <text x="770" y="401" text-anchor="middle" fill="#78716c" font-size="7.5">5 tools</text>
 
   <!-- Arrow down to MCP layer -->
-  <line x1="450" y1="418" x2="450" y2="443" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="418" x2="450" y2="443" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 4: MCP Layer ────────────────────────────────── -->
-  <rect x="60" y="443" width="780" height="100" rx="12" fill="#0c1a2e" stroke="#1e3a5f" stroke-width="1.5" stroke-dasharray="6,3"/>
-  <text x="450" y="463" text-anchor="middle" fill="#7dd3fc" font-size="10" font-weight="bold">MCP LAYER  (Model Context Protocol implementations — pluggable backends)</text>
+  <rect x="60" y="443" width="780" height="100" rx="12" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="450" y="463" text-anchor="middle" fill="#1e40af" font-size="10" font-weight="bold">MCP LAYER  (Model Context Protocol implementations — pluggable backends)</text>
 
-  <rect x="80" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="132" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">MemoryMCP</text>
-  <text x="132" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">SQLite KV store</text>
-  <text x="132" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">TTL + namespace</text>
+  <rect x="80" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="132" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">MemoryMCP</text>
+  <text x="132" y="507" text-anchor="middle" fill="#2563eb" font-size="8">SQLite KV store</text>
+  <text x="132" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">TTL + namespace</text>
 
-  <rect x="197" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="249" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">RetrievalMCP</text>
-  <text x="249" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">Pluggable search</text>
-  <text x="249" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">TF-IDF/Vector/Postgres</text>
+  <rect x="197" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="249" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">RetrievalMCP</text>
+  <text x="249" y="507" text-anchor="middle" fill="#2563eb" font-size="8">Pluggable search</text>
+  <text x="249" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">TF-IDF/Vector/Postgres</text>
 
-  <rect x="314" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="366" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">HttpMCP</text>
-  <text x="366" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">requests + Retry</text>
-  <text x="366" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">timeout + backoff</text>
+  <rect x="314" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="366" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">HttpMCP</text>
+  <text x="366" y="507" text-anchor="middle" fill="#2563eb" font-size="8">requests + Retry</text>
+  <text x="366" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">timeout + backoff</text>
 
-  <rect x="431" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="483" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">SchedulerMCP</text>
-  <text x="483" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">APScheduler/Celery</text>
-  <text x="483" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">SQLite / Redis broker</text>
+  <rect x="431" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="483" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">SchedulerMCP</text>
+  <text x="483" y="507" text-anchor="middle" fill="#2563eb" font-size="8">APScheduler/Celery</text>
+  <text x="483" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">SQLite / Redis broker</text>
 
-  <rect x="548" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="600" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">NotificationMCP</text>
-  <text x="600" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">SMTP + Slack</text>
-  <text x="600" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">webhook + dry-run</text>
+  <rect x="548" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="600" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">NotificationMCP</text>
+  <text x="600" y="507" text-anchor="middle" fill="#2563eb" font-size="8">SMTP + Slack</text>
+  <text x="600" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">webhook + dry-run</text>
 
-  <rect x="665" y="473" width="105" height="55" rx="6" fill="#0f2540" stroke="#1d4ed8" stroke-width="1"/>
-  <text x="717" y="492" text-anchor="middle" fill="#93c5fd" font-size="9" font-weight="bold">AuthMCP</text>
-  <text x="717" y="507" text-anchor="middle" fill="#60a5fa" font-size="8">Fernet encrypt</text>
-  <text x="717" y="519" text-anchor="middle" fill="#3b82f6" font-size="7.5">SQLite vault</text>
+  <rect x="665" y="473" width="105" height="55" rx="6" fill="#dbeafe" stroke="#3b82f6" stroke-width="1"/>
+  <text x="717" y="492" text-anchor="middle" fill="#1e40af" font-size="9" font-weight="bold">AuthMCP</text>
+  <text x="717" y="507" text-anchor="middle" fill="#2563eb" font-size="8">Fernet encrypt</text>
+  <text x="717" y="519" text-anchor="middle" fill="#1d4ed8" font-size="7.5">SQLite vault</text>
 
   <!-- Arrow down to backends -->
-  <line x1="450" y1="543" x2="450" y2="563" stroke="#475569" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="450" y1="543" x2="450" y2="563" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arr)"/>
 
   <!-- ── Layer 5: Backends ─────────────────────────────────── -->
-  <rect x="60" y="563" width="780" height="62" rx="10" fill="#111827" stroke="#1f2937" stroke-width="1.5"/>
-  <text x="450" y="581" text-anchor="middle" fill="#6b7280" font-size="10" font-weight="bold">EXTERNAL BACKENDS</text>
+  <rect x="60" y="563" width="780" height="62" rx="10" fill="#f9fafb" stroke="#e5e7eb" stroke-width="1.5"/>
+  <text x="450" y="581" text-anchor="middle" fill="#374151" font-size="10" font-weight="bold">EXTERNAL BACKENDS</text>
   <text x="450" y="597" text-anchor="middle" fill="#4b5563" font-size="9">SQLite  ·  PostgreSQL  ·  ChromaDB (vector)  ·  HTTP APIs  ·  APScheduler / Celery  ·  SMTP  ·  Slack webhook</text>
-  <text x="450" y="614" text-anchor="middle" fill="#374151" font-size="8">Memory: SQLite · Postgres · ChromaDB  |  Retrieval: TF-IDF+SQLite · ChromaDB · Postgres  |  Scheduler: APScheduler · Celery</text>
+  <text x="450" y="614" text-anchor="middle" fill="#6b7280" font-size="8">Memory: SQLite · Postgres · ChromaDB  |  Retrieval: TF-IDF+SQLite · ChromaDB · Postgres  |  Scheduler: APScheduler · Celery</text>
 
   <!-- Arrowhead markers -->
   <defs>
     <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#475569"/>
+      <path d="M0,0 L0,6 L8,3 z" fill="#94a3b8"/>
     </marker>
     <marker id="arr-grey" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-      <path d="M0,0 L0,6 L8,3 z" fill="#6b7280"/>
+      <path d="M0,0 L0,6 L8,3 z" fill="#9ca3af"/>
     </marker>
   </defs>
 </svg>

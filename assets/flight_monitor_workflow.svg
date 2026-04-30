@@ -1,15 +1,15 @@
 <svg width="920" height="680" viewBox="0 0 920 680" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
   <!-- Background -->
-  <rect width="920" height="680" fill="#0f172a"/>
+  <rect width="920" height="680" fill="#ffffff"/>
 
   <!-- Title -->
-  <text x="460" y="38" text-anchor="middle" fill="#f1f5f9" font-size="18" font-weight="bold">✈️  Flight Monitor — Multi-Agent Workflow</text>
+  <text x="460" y="38" text-anchor="middle" fill="#1e293b" font-size="18" font-weight="bold">✈️  Flight Monitor — Multi-Agent Workflow</text>
   <text x="460" y="57" text-anchor="middle" fill="#64748b" font-size="10">One graph execution = one monitoring cycle  ·  Monitoring loop in run.py calls the graph repeatedly</text>
 
   <!-- Defs -->
   <defs>
     <marker id="a" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto">
-      <polygon points="0 0, 9 3.5, 0 7" fill="#475569"/>
+      <polygon points="0 0, 9 3.5, 0 7" fill="#94a3b8"/>
     </marker>
     <marker id="a-g" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto">
       <polygon points="0 0, 9 3.5, 0 7" fill="#22c55e"/>
@@ -18,124 +18,124 @@
       <polygon points="0 0, 9 3.5, 0 7" fill="#f87171"/>
     </marker>
     <marker id="a-y" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto">
-      <polygon points="0 0, 9 3.5, 0 7" fill="#fbbf24"/>
+      <polygon points="0 0, 9 3.5, 0 7" fill="#d97706"/>
     </marker>
     <marker id="a-b" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto">
-      <polygon points="0 0, 9 3.5, 0 7" fill="#60a5fa"/>
+      <polygon points="0 0, 9 3.5, 0 7" fill="#3b82f6"/>
     </marker>
     <marker id="a-p" markerWidth="9" markerHeight="7" refX="7" refY="3.5" orient="auto">
-      <polygon points="0 0, 9 3.5, 0 7" fill="#a78bfa"/>
+      <polygon points="0 0, 9 3.5, 0 7" fill="#ec4899"/>
     </marker>
   </defs>
 
-  <!-- ── Monitoring Loop (outer) ─────────────────────────────────────────────────── -->
-  <rect x="18" y="68" width="884" height="596" rx="14" fill="none" stroke="#1e293b" stroke-width="2" stroke-dasharray="8,4"/>
-  <text x="42" y="90" fill="#334155" font-size="10" font-weight="bold">MONITORING LOOP (run.py)  — repeats every N seconds until booking or max_checks</text>
+  <!-- ── Monitoring Loop (outer) ────────────────────────────────────────────── -->
+  <rect x="18" y="68" width="884" height="596" rx="14" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="8,4"/>
+  <text x="42" y="90" fill="#94a3b8" font-size="10" font-weight="bold">MONITORING LOOP (run.py)  — repeats every N seconds until booking or max_checks</text>
 
   <!-- START -->
   <circle cx="460" cy="118" r="28" fill="#1e293b" stroke="#475569" stroke-width="2"/>
-  <text x="460" y="114" text-anchor="middle" fill="#94a3b8" font-size="11" font-weight="bold">START</text>
-  <text x="460" y="129" text-anchor="middle" fill="#64748b" font-size="9">check N</text>
+  <text x="460" y="114" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">START</text>
+  <text x="460" y="129" text-anchor="middle" fill="#94a3b8" font-size="9">check N</text>
 
   <!-- Arrow START → Search -->
-  <line x1="460" y1="146" x2="460" y2="178" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="460" y1="146" x2="460" y2="178" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- ── 1. SearchAgent ──────────────────────────────────────────────────────────── -->
-  <rect x="300" y="178" width="320" height="90" rx="10" fill="#0c2340" stroke="#3b82f6" stroke-width="2"/>
-  <text x="460" y="200" text-anchor="middle" fill="#93c5fd" font-size="13" font-weight="bold">🔍 Search Agent</text>
-  <text x="460" y="218" text-anchor="middle" fill="#60a5fa" font-size="10">http_get → flight search API</text>
+  <!-- ── 1. SearchAgent ──────────────────────────────────────────────────────── -->
+  <rect x="300" y="178" width="320" height="90" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="460" y="200" text-anchor="middle" fill="#1e40af" font-size="13" font-weight="bold">🔍 Search Agent</text>
+  <text x="460" y="218" text-anchor="middle" fill="#2563eb" font-size="10">flight_search → 항공편 조회 API</text>
   <text x="460" y="234" text-anchor="middle" fill="#3b82f6" font-size="9">memory_set(latest_search, namespace=flights)</text>
-  <text x="460" y="250" text-anchor="middle" fill="#1d4ed8" font-size="9">notify_console progress log</text>
+  <text x="460" y="250" text-anchor="middle" fill="#60a5fa" font-size="9">notify_console 진행 로그</text>
   <text x="460" y="264" text-anchor="middle" fill="#93c5fd" font-size="8">active_phase = "search"</text>
 
   <!-- ToolNode loop for Search -->
-  <rect x="715" y="195" width="145" height="56" rx="8" fill="#1c1917" stroke="#f59e0b" stroke-width="1.5"/>
-  <text x="787" y="216" text-anchor="middle" fill="#fde68a" font-size="11" font-weight="bold">🔧 ToolNode</text>
-  <text x="787" y="232" text-anchor="middle" fill="#fcd34d" font-size="9">http_get · memory_set</text>
-  <text x="787" y="246" text-anchor="middle" fill="#d97706" font-size="9">notify_console</text>
-  <line x1="620" y1="223" x2="713" y2="223" stroke="#f59e0b" stroke-width="1.5" marker-end="url(#a-y)"/>
-  <text x="665" y="216" text-anchor="middle" fill="#f59e0b" font-size="9">tool_calls?</text>
-  <path d="M787 195 Q 787 155 620 155 Q 500 155 460 178" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#a-y)"/>
-  <text x="690" y="149" text-anchor="middle" fill="#d97706" font-size="9">loop back</text>
+  <rect x="715" y="195" width="145" height="56" rx="8" fill="#fefce8" stroke="#d97706" stroke-width="1.5"/>
+  <text x="787" y="216" text-anchor="middle" fill="#78350f" font-size="11" font-weight="bold">🔧 ToolNode</text>
+  <text x="787" y="232" text-anchor="middle" fill="#92400e" font-size="9">flight_search · memory_set</text>
+  <text x="787" y="246" text-anchor="middle" fill="#b45309" font-size="9">notify_console</text>
+  <line x1="620" y1="223" x2="713" y2="223" stroke="#d97706" stroke-width="1.5" marker-end="url(#a-y)"/>
+  <text x="665" y="216" text-anchor="middle" fill="#d97706" font-size="9">LLM이 tool 호출</text>
+  <path d="M787 195 Q 787 155 620 155 Q 500 155 460 178" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#a-y)"/>
+  <text x="690" y="149" text-anchor="middle" fill="#b45309" font-size="9">결과 반환 후 재실행</text>
 
   <!-- Arrow Search → PriceAnalysis -->
-  <line x1="460" y1="268" x2="460" y2="300" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="480" y="287" fill="#475569" font-size="9">done</text>
+  <line x1="460" y1="268" x2="460" y2="300" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
+  <text x="480" y="287" fill="#64748b" font-size="9">완료</text>
 
-  <!-- ── 2. PriceAnalysisAgent ──────────────────────────────────────────────────── -->
-  <rect x="300" y="300" width="320" height="90" rx="10" fill="#1a1042" stroke="#8b5cf6" stroke-width="2"/>
-  <text x="460" y="322" text-anchor="middle" fill="#c4b5fd" font-size="13" font-weight="bold">📊 Price Analysis Agent</text>
-  <text x="460" y="340" text-anchor="middle" fill="#a78bfa" font-size="10">memory_get(latest_search)</text>
-  <text x="460" y="356" text-anchor="middle" fill="#7c3aed" font-size="9">LLM structured output → PriceDecision</text>
-  <text x="460" y="372" text-anchor="middle" fill="#7c3aed" font-size="9">cheapest_price &lt; max_price?</text>
-  <text x="460" y="386" text-anchor="middle" fill="#c4b5fd" font-size="8">No tool calls — pure LLM reasoning</text>
+  <!-- ── 2. PriceAnalysisAgent ──────────────────────────────────────────────── -->
+  <rect x="300" y="300" width="320" height="90" rx="10" fill="#f5f3ff" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="460" y="322" text-anchor="middle" fill="#3730a3" font-size="13" font-weight="bold">📊 Price Analysis Agent</text>
+  <text x="460" y="340" text-anchor="middle" fill="#4c1d95" font-size="10">memory_get(latest_search)</text>
+  <text x="460" y="356" text-anchor="middle" fill="#6d28d9" font-size="9">LLM 구조화 출력 → PriceDecision</text>
+  <text x="460" y="372" text-anchor="middle" fill="#7c3aed" font-size="9">cheapest_price &lt; max_price 여부 판단</text>
+  <text x="460" y="386" text-anchor="middle" fill="#a78bfa" font-size="8">도구 호출 없음 — 순수 LLM 추론</text>
 
   <!-- Routing diamond -->
-  <polygon points="460,420 520,450 460,480 400,450" fill="#1c1917" stroke="#78716c" stroke-width="1.5"/>
-  <text x="460" y="447" text-anchor="middle" fill="#d6d3d1" font-size="10" font-weight="bold">should_book?</text>
+  <polygon points="460,420 520,450 460,480 400,450" fill="#f8fafc" stroke="#78716c" stroke-width="1.5"/>
+  <text x="460" y="447" text-anchor="middle" fill="#292524" font-size="10" font-weight="bold">should_book?</text>
   <text x="460" y="462" text-anchor="middle" fill="#78716c" font-size="8">route_price_analysis</text>
-  <line x1="460" y1="390" x2="460" y2="418" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <line x1="460" y1="390" x2="460" y2="418" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
-  <!-- ── 3. BookingAgent (YES branch) ───────────────────────────────────────────── -->
-  <rect x="100" y="420" width="240" height="90" rx="10" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
-  <text x="220" y="442" text-anchor="middle" fill="#bbf7d0" font-size="13" font-weight="bold">💳 Booking Agent</text>
-  <text x="220" y="460" text-anchor="middle" fill="#86efac" font-size="10">http_post → booking API</text>
-  <text x="220" y="476" text-anchor="middle" fill="#4ade80" font-size="9">memory_set(booking_confirmation)</text>
-  <text x="220" y="492" text-anchor="middle" fill="#4ade80" font-size="9">auth_get_key(flight-api)</text>
-  <text x="220" y="505" text-anchor="middle" fill="#bbf7d0" font-size="8">active_phase = "booking"</text>
+  <!-- ── 3. BookingAgent (YES branch) ──────────────────────────────────────── -->
+  <rect x="100" y="420" width="240" height="90" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="2"/>
+  <text x="220" y="442" text-anchor="middle" fill="#14532d" font-size="13" font-weight="bold">💳 Booking Agent</text>
+  <text x="220" y="460" text-anchor="middle" fill="#166534" font-size="10">flight_book → 항공편 예약</text>
+  <text x="220" y="476" text-anchor="middle" fill="#16a34a" font-size="9">memory_set(booking_confirmation)</text>
+  <text x="220" y="492" text-anchor="middle" fill="#15803d" font-size="9">notify_console 예약 진행 로그</text>
+  <text x="220" y="505" text-anchor="middle" fill="#86efac" font-size="8">active_phase = "booking"</text>
 
   <!-- YES arrow Diamond → Booking -->
   <line x1="400" y1="450" x2="342" y2="450" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-g)"/>
-  <text x="368" y="444" text-anchor="middle" fill="#22c55e" font-size="9">YES</text>
+  <text x="368" y="444" text-anchor="middle" fill="#15803d" font-size="9">YES</text>
 
   <!-- ToolNode for Booking -->
-  <rect x="52" y="440" width="40" height="56" rx="6" fill="#1c1917" stroke="#f59e0b" stroke-width="1.2"/>
-  <text x="72" y="464" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="bold">🔧</text>
-  <text x="72" y="478" text-anchor="middle" fill="#fcd34d" font-size="7">Tools</text>
-  <line x1="100" y1="465" x2="94" y2="465" stroke="#f59e0b" stroke-width="1.2" marker-end="url(#a-y)"/>
-  <path d="M72 440 Q 72 400 100 400 Q 150 400 170 420" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#a-y)"/>
+  <rect x="52" y="440" width="40" height="56" rx="6" fill="#fefce8" stroke="#d97706" stroke-width="1.2"/>
+  <text x="72" y="464" text-anchor="middle" fill="#78350f" font-size="8" font-weight="bold">🔧</text>
+  <text x="72" y="478" text-anchor="middle" fill="#92400e" font-size="7">Tools</text>
+  <line x1="100" y1="465" x2="94" y2="465" stroke="#d97706" stroke-width="1.2" marker-end="url(#a-y)"/>
+  <path d="M72 440 Q 72 400 100 400 Q 150 400 170 420" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#a-y)"/>
 
   <!-- extract_booking_result -->
-  <rect x="100" y="540" width="240" height="42" rx="8" fill="#14532d" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="5,2"/>
-  <text x="220" y="557" text-anchor="middle" fill="#86efac" font-size="10" font-weight="bold">📋 extract_booking_result</text>
-  <text x="220" y="572" text-anchor="middle" fill="#4ade80" font-size="9">Read confirmation → update FlightState</text>
+  <rect x="100" y="540" width="240" height="42" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="5,2"/>
+  <text x="220" y="557" text-anchor="middle" fill="#14532d" font-size="10" font-weight="bold">📋 extract_booking_result</text>
+  <text x="220" y="572" text-anchor="middle" fill="#166534" font-size="9">확인 정보 읽기 → FlightState 업데이트</text>
   <line x1="220" y1="510" x2="220" y2="538" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-g)"/>
 
-  <!-- ── 4. NotificationAgent ───────────────────────────────────────────────────── -->
-  <rect x="580" y="420" width="240" height="100" rx="10" fill="#4a1942" stroke="#ec4899" stroke-width="2"/>
-  <text x="700" y="442" text-anchor="middle" fill="#fbcfe8" font-size="13" font-weight="bold">📣 Notification Agent</text>
-  <text x="700" y="460" text-anchor="middle" fill="#f9a8d4" font-size="10">notify_slack(#travel-alerts)</text>
-  <text x="700" y="476" text-anchor="middle" fill="#f9a8d4" font-size="10">notify_email(booking confirmation)</text>
-  <text x="700" y="492" text-anchor="middle" fill="#db2777" font-size="9">OR notify_console(no deal this check)</text>
-  <text x="700" y="508" text-anchor="middle" fill="#fbcfe8" font-size="8">memory_set(notification_sent)</text>
-  <text x="700" y="519" text-anchor="middle" fill="#f472b6" font-size="8">active_phase = "notification"</text>
+  <!-- ── 4. NotificationAgent ────────────────────────────────────────────────── -->
+  <rect x="580" y="420" width="240" height="100" rx="10" fill="#fdf2f8" stroke="#ec4899" stroke-width="2"/>
+  <text x="700" y="442" text-anchor="middle" fill="#9d174d" font-size="13" font-weight="bold">📣 Notification Agent</text>
+  <text x="700" y="460" text-anchor="middle" fill="#be185d" font-size="10">notify_slack(#travel-alerts)</text>
+  <text x="700" y="476" text-anchor="middle" fill="#be185d" font-size="10">notify_email(예약 확인)</text>
+  <text x="700" y="492" text-anchor="middle" fill="#db2777" font-size="9">OR notify_console(미발견)</text>
+  <text x="700" y="508" text-anchor="middle" fill="#db2777" font-size="9">memory_set(notification_sent)</text>
+  <text x="700" y="519" text-anchor="middle" fill="#f9a8d4" font-size="8">active_phase = "notification"</text>
 
   <!-- ToolNode for Notification -->
-  <rect x="828" y="440" width="52" height="56" rx="6" fill="#1c1917" stroke="#f59e0b" stroke-width="1.2"/>
-  <text x="854" y="463" text-anchor="middle" fill="#fde68a" font-size="8" font-weight="bold">🔧</text>
-  <text x="854" y="477" text-anchor="middle" fill="#fcd34d" font-size="7">Tools</text>
-  <line x1="820" y1="470" x2="830" y2="470" stroke="#f59e0b" stroke-width="1.2" marker-end="url(#a-y)"/>
-  <path d="M854 440 Q 854 400 820 400 Q 760 400 740 420" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#a-y)"/>
+  <rect x="828" y="440" width="52" height="56" rx="6" fill="#fefce8" stroke="#d97706" stroke-width="1.2"/>
+  <text x="854" y="463" text-anchor="middle" fill="#78350f" font-size="8" font-weight="bold">🔧</text>
+  <text x="854" y="477" text-anchor="middle" fill="#92400e" font-size="7">Tools</text>
+  <line x1="820" y1="470" x2="830" y2="470" stroke="#d97706" stroke-width="1.2" marker-end="url(#a-y)"/>
+  <path d="M854 440 Q 854 400 820 400 Q 760 400 740 420" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="3,2" marker-end="url(#a-y)"/>
 
   <!-- NO arrow Diamond → Notification -->
   <line x1="520" y1="450" x2="578" y2="450" stroke="#f87171" stroke-width="1.5" marker-end="url(#a-r)"/>
-  <text x="548" y="444" text-anchor="middle" fill="#f87171" font-size="9">NO</text>
+  <text x="548" y="444" text-anchor="middle" fill="#dc2626" font-size="9">NO</text>
 
   <!-- Booking → Notification (after extract) -->
   <path d="M220 582 Q 220 610 580 550 Q 620 540 580 490" fill="none" stroke="#22c55e" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#a-g)"/>
-  <text x="380" y="618" text-anchor="middle" fill="#22c55e" font-size="9">→ notification</text>
+  <text x="380" y="618" text-anchor="middle" fill="#15803d" font-size="9">→ notification</text>
 
   <!-- END node -->
-  <circle cx="700" cy="590" r="28" fill="#14532d" stroke="#22c55e" stroke-width="2"/>
-  <text x="700" y="586" text-anchor="middle" fill="#bbf7d0" font-size="11" font-weight="bold">END</text>
-  <text x="700" y="601" text-anchor="middle" fill="#86efac" font-size="9">cycle done</text>
-  <line x1="700" y1="520" x2="700" y2="560" stroke="#22c55e" stroke-width="1.5" marker-end="url(#a-g)"/>
+  <circle cx="700" cy="590" r="28" fill="#1e293b" stroke="#475569" stroke-width="2"/>
+  <text x="700" y="586" text-anchor="middle" fill="#f1f5f9" font-size="11" font-weight="bold">END</text>
+  <text x="700" y="601" text-anchor="middle" fill="#94a3b8" font-size="9">cycle done</text>
+  <line x1="700" y1="520" x2="700" y2="560" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#a)"/>
 
   <!-- Monitoring Loop decision -->
-  <rect x="300" y="622" width="320" height="38" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1.2"/>
-  <text x="460" y="638" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="bold">LOOP DECISION (run.py)</text>
+  <rect x="300" y="622" width="320" height="38" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.2"/>
+  <text x="460" y="638" text-anchor="middle" fill="#374151" font-size="10" font-weight="bold">LOOP DECISION (run.py)</text>
   <text x="460" y="653" text-anchor="middle" fill="#64748b" font-size="9">booking_confirmed → EXIT  |  check &lt; max → sleep → next cycle</text>
 
   <!-- END → loop decision -->
-  <path d="M700 618 Q 700 645 620 645" fill="none" stroke="#475569" stroke-width="1.2" marker-end="url(#a)"/>
+  <path d="M700 618 Q 700 645 620 645" fill="none" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#a)"/>
 </svg>
