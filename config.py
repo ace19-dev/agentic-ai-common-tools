@@ -78,7 +78,28 @@ TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "")
 TEAMS_WEBHOOK_URL: str = os.getenv("TEAMS_WEBHOOK_URL", "")
 NOTIFICATION_DRY_RUN: bool = os.getenv("NOTIFICATION_DRY_RUN", "true").lower() == "true"
 
-# ── Logging ─────────────────────────────────────────────────────────────────────
+# ── Logging MCP backend ────────────────────────────────────────────────────────
+# 백엔드 옵션: sqlite (기본값) | file | loki | elasticsearch
+LOGGING_BACKEND: str = os.getenv("LOGGING_BACKEND", "sqlite")
+
+# SQLite 백엔드
+LOGGING_DB_PATH: str = os.getenv("LOGGING_DB_PATH", str(DATA_DIR / "agent_logs.db"))
+
+# File 백엔드 (회전 JSON Lines)
+LOGGING_FILE_PATH: str = os.getenv("LOGGING_FILE_PATH", str(DATA_DIR / "agent.log"))
+LOGGING_FILE_MAX_BYTES: int = int(os.getenv("LOGGING_FILE_MAX_BYTES", str(10 * 1024 * 1024)))
+LOGGING_FILE_BACKUP_COUNT: int = int(os.getenv("LOGGING_FILE_BACKUP_COUNT", "5"))
+
+# Loki 백엔드 (Grafana Loki)
+LOGGING_LOKI_URL: str = os.getenv("LOGGING_LOKI_URL", "http://localhost:3100")
+LOGGING_LOKI_LABELS: str = os.getenv("LOGGING_LOKI_LABELS", '{"app": "agentic-ai"}')
+
+# Elasticsearch / OpenSearch 백엔드
+LOGGING_ES_URL: str = os.getenv("LOGGING_ES_URL", "http://localhost:9200")
+LOGGING_ES_INDEX: str = os.getenv("LOGGING_ES_INDEX", "agentic-ai-logs")
+LOGGING_ES_API_KEY: str = os.getenv("LOGGING_ES_API_KEY", "")
+
+# ── Python root logger ─────────────────────────────────────────────────────────
 LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 logging.basicConfig(
     level=getattr(logging, LOG_LEVEL, logging.INFO),

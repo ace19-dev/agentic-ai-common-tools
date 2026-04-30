@@ -9,6 +9,7 @@ Grouped by MCP:
   Scheduler (3)    — create, list, remove
   Notification (3) — email, slack, console
   Auth (5)         — store_key, get_key, validate, list_services, revoke
+  Logging (4)      — write, query, tail, clear
   Flight (2)       — search, book  (requires configure_flight_client() at startup;
                      NOT included in ALL_TOOLS — add per-agent as needed)
 """
@@ -18,6 +19,7 @@ from .crawl_tools import (crawl_and_index, crawl_and_index_urls, crawl_recursive
                           crawl_sitemap)
 from .flight_tools import flight_book, flight_search
 from .http_tools import http_get, http_post
+from .logging_tools import log_clear, log_query, log_tail, log_write
 from .memory_tools import memory_delete, memory_get, memory_list_keys, memory_set
 from .notification_tools import notify_console, notify_email, notify_slack
 from .retrieval_tools import (retrieval_build_context, retrieval_delete,
@@ -40,6 +42,8 @@ ALL_TOOLS = [
     notify_email, notify_slack, notify_console,
     # Auth
     auth_store_key, auth_get_key, auth_validate, auth_list_services, auth_revoke,
+    # Logging
+    log_write, log_query, log_tail, log_clear,
     # Note: flight_search / flight_book are NOT here — they require configure_flight_client()
 ]
 
@@ -53,5 +57,6 @@ __all__ = [
     "schedule_create", "schedule_list", "schedule_remove",
     "notify_email", "notify_slack", "notify_console",
     "auth_store_key", "auth_get_key", "auth_validate", "auth_list_services", "auth_revoke",
+    "log_write", "log_query", "log_tail", "log_clear",
     "flight_search", "flight_book",
 ]
